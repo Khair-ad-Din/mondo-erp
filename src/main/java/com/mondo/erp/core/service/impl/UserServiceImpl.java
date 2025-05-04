@@ -3,6 +3,7 @@ package com.mondo.erp.core.service.impl;
 import com.mondo.erp.core.model.Company;
 import com.mondo.erp.core.model.User;
 import com.mondo.erp.core.repository.UserRepository;
+import com.mondo.erp.core.service.UserService;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -13,7 +14,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-public class UserServiceImpl {
+public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -25,7 +26,7 @@ public class UserServiceImpl {
     }
 
     @Override
-    public List<User> findAll(Long id) {
+    public List<User> findAll() {
         return userRepository.findAll();
     }
 
@@ -72,7 +73,7 @@ public class UserServiceImpl {
 
     public void updateLastAccess(String username) {
         userRepository.findByUsername(username).ifPresent(user -> {
-            user.setLastAccess(LocalDateTime.now());
+            user.setLastLogin(LocalDateTime.now());
             userRepository.save(user);
         });
     }

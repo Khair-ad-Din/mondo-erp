@@ -1,5 +1,3 @@
-sql
-
 -- Companies Table
 CREATE TABLE companies (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
