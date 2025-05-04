@@ -7,7 +7,7 @@ import java.util.Optional;
 
 public interface CompanyRepository extends JpaRepository<Company, Long> {
 
-    Optional<Company> findByCif(String cif);
+    Optional<Company> findByTaxId(String taxId);
 
-    boolean existsByCif(String cif);
+    boolean existsByTaxId(String taxId);
 }

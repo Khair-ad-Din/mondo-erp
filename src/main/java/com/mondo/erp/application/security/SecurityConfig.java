@@ -2,6 +2,7 @@ package com.mondo.erp.application.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -21,10 +22,12 @@ public class SecurityConfig {
 
     private final UserDetailsService userDetailsService;
     private final CustomAuthenticationSuccessHandler successHandler;
+    private final PasswordEncoder passwordEncoder;
 
-    public SecurityConfig(UserDetailsService userDetailsService, CustomAuthenticationSuccessHandler successHandler) {
+    public SecurityConfig(UserDetailsService userDetailsService, @Lazy CustomAuthenticationSuccessHandler successHandler, PasswordEncoder passwordEncoder) {
         this.userDetailsService = userDetailsService;
         this.successHandler = successHandler;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Bean
@@ -64,13 +67,8 @@ public class SecurityConfig {
     public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
         return http.getSharedObject(AuthenticationManagerBuilder.class)
                 .userDetailsService(userDetailsService)
-                .passwordEncoder(passwordEncoder())
+                .passwordEncoder(passwordEncoder)
                 .and()
                 .build();
-    }
-
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
     }
 }

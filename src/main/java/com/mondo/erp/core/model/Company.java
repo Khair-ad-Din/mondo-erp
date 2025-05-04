@@ -26,30 +26,30 @@ public class Company {
     private String name;
 
     @Column(unique = true, nullable = false)
-    private String cif;
+    private String taxId;
 
-    private String direction;
+    private String address;
 
-    private String town;
+    private String city;
 
-    private String county;
+    private String state;
 
     @Column(name = "postal_code")
     private String postalCode;
 
-    private String telephoneNumber;
+    private String phone;
 
     private String email;
 
-    @Column(name = "web_site")
+    @Column(name = "website")
     private String webSite;
 
     @CreationTimestamp
     @Column(updatable = false)
-    private LocalDateTime creationTime;
+    private LocalDateTime createdAt;
 
     @UpdateTimestamp
-    private LocalDateTime updateTime;
+    private LocalDateTime updatedAt;
 
 
 
