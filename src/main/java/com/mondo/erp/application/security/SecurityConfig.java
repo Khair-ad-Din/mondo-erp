@@ -33,7 +33,13 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.ignoringRequestMatchers("/api/**"))
+                .csrf(csrf -> csrf
+                        .ignoringRequestMatchers("/api/**")
+                        .ignoringRequestMatchers("/h2-console/**")  // Ignore CSRF for H2 console
+                )
+                .headers(headers -> headers
+                        .frameOptions().sameOrigin()
+                )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**", "/h2-console/**").permitAll()
                         .requestMatchers("/login", "/register", "/forgot-password").permitAll()

@@ -99,7 +99,7 @@ SELECT 3, id FROM permissions WHERE name LIKE '%_READ';
 
 -- Create admin user (password: admin)
 INSERT INTO users (username, password, first_name, last_name, email, company_id)
-VALUES ('admin', '$2a$10$mXKL9RC5ESPBiUvZYGlGiOCwHe1h8NxPJ0CRjgJj8.Ly3XuI1o7ES', 'Admin', 'User', 'admin@example.com', 1);
+VALUES ('admin', '$2a$10$rY.CDRrz5KpFpbODvpNn3OQKkoOwmjcMDWW/Cl/z3CIKDUxLpCsJO', 'Admin', 'User', 'admin@example.com', 1);
 
 -- Assign admin role to admin user
 INSERT INTO users_roles (user_id, role_id) VALUES (1, 1);
