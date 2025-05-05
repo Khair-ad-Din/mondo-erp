@@ -24,7 +24,7 @@ public class SecurityConfig {
     private final CustomAuthenticationSuccessHandler successHandler;
     private final PasswordEncoder passwordEncoder;
 
-    public SecurityConfig(UserDetailsService userDetailsService, @Lazy CustomAuthenticationSuccessHandler successHandler, PasswordEncoder passwordEncoder) {
+    public SecurityConfig(UserDetailsService userDetailsService, CustomAuthenticationSuccessHandler successHandler, PasswordEncoder passwordEncoder) {
         this.userDetailsService = userDetailsService;
         this.successHandler = successHandler;
         this.passwordEncoder = passwordEncoder;
@@ -49,6 +49,7 @@ public class SecurityConfig {
                 )
                 .formLogin(form -> form
                         .loginPage("/login")
+                        .loginProcessingUrl("/login")
                         .successHandler(successHandler)
                         .permitAll()
                 )

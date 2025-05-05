@@ -48,8 +48,8 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public User save(User user) {
-        // Encriptar contraseña si es nueva o ha cambiado
-        if (user.getId() != null || (user.getPassword() != null && !user.getPassword().startsWith("$2a$"))) {
+        // Encrypt password if it's a new user or if the password has changed
+        if (user.getId() == null || (user.getPassword() != null && !user.getPassword().startsWith("$2a$"))) {
             user.setPassword(passwordEncoder.encode(user.getPassword()));
         }
         return userRepository.save(user);
