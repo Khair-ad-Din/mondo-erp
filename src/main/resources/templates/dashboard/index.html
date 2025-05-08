@@ -18,6 +18,19 @@
                 <li class="nav-item">
                     <a class="nav-link active" href="#">Dashboard</a>
                 </li>
+                <!-- Added dropdown for Finance Module (with security check) -->
+                <li class="nav-item dropdown" sec:authorize="hasAuthority('FINANCE_READ')">
+                    <a class="nav-link dropdown-toggle" href="#" id="financeDropdown" role="button"
+                       data-bs-toggle="dropdown" aria-expanded="false">
+                        Finance
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="financeDropdown">
+                        <li><a class="dropdown-item" href="/mondo-erp/finance/accounts">Chart of Accounts</a></li>
+                        <li><a class="dropdown-item" href="/mondo-erp/finance/journal-entries">Journal Entries</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="/mondo-erp/finance/reports">Financial Reports</a></li>
+                    </ul>
+                </li>
             </ul>
             <div class="d-flex">
                 <form th:action="@{/logout}" method="post">
@@ -29,10 +42,26 @@
 </nav>
 
 <div class="container mt-4">
-    <h2>Welcome to Mondo ERP</h2>
-    <p>You are logged in as: <span sec:authentication="name"></span></p>
     <div class="alert alert-success">
-        Successfully logged in!
+        <p>Welcome to Mondo ERP! You are logged in as: <span sec:authentication="name"></span></p>
+    </div>
+
+    <div class="row mt-4">
+        <!-- Dashboard Cards -->
+
+        <!-- Finance Module Card (visible only to users with finance permissions) -->
+        <div class="col-md-6 mb-4" sec:authorize="hasAuthority('FINANCE_READ')">
+            <div class="card h-100">
+                <div class="card-header">Finance</div>
+                <div class="card-body">
+                    <h5 class="card-title">Financial Management</h5>
+                    <p class="card-text">Access financial data, charts of accounts, and reports.</p>
+                    <a href="/mondo-erp/finance/accounts" class="btn btn-primary">Go to Finance</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Other module cards can be added here -->
     </div>
 </div>
 
