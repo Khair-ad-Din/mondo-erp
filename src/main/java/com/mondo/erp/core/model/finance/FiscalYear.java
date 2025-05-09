@@ -36,7 +36,7 @@ public class FiscalYear {
     @Column(nullable = false)
     private FiscalYearStatus status = FiscalYearStatus.OPEN;
 
-    @Column(nullable = false)
+    @ManyToOne
     @JoinColumn(name = "company_id", nullable = false)
     private Company company;
 

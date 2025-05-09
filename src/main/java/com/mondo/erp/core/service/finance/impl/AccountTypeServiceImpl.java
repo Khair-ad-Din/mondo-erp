@@ -4,10 +4,12 @@ import com.mondo.erp.core.model.finance.AccountType;
 import com.mondo.erp.core.repository.finance.AccountTypeRepository;
 import com.mondo.erp.core.service.finance.AccountTypeService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 
+@Service
 public class AccountTypeServiceImpl implements AccountTypeService {
 
     private final AccountTypeRepository accountTypeRepository;

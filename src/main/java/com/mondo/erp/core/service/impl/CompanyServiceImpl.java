@@ -4,10 +4,12 @@ import com.mondo.erp.core.model.Company;
 import com.mondo.erp.core.repository.CompanyRepository;
 import com.mondo.erp.core.service.CompanyService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 
+@Service
 public class CompanyServiceImpl implements CompanyService {
 
     private final CompanyRepository companyRepository;

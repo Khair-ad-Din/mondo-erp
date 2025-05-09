@@ -18,6 +18,6 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
 
     Optional<Account> findByCodeAndCompany(String code, Company company);
 
-    @Query("SELECT a FROM Account WHERE a.parent IS NULL AND a.company = ?1")
+    @Query("SELECT a FROM Account a WHERE a.parent IS NULL AND a.company = ?1")
     List<Account> findRootAccounts(Company company);
 }
