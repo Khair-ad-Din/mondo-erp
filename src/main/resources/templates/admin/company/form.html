@@ -1,0 +1,125 @@
+<!-- src/main/resources/templates/admin/company/form.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${company.id == null ? 'Create Company' : 'Edit Company'} + ' - Mondo ERP'"></title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body>
+<!-- Navigation -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="#">Mondo ERP - Admin</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="/mondo-erp/admindashboard">Dashboard</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/mondo-erp/admin/users">Users</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/mondo-erp/admin/roles">Roles</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active" href="/mondo-erp/admin/companies">Companies</a>
+                </li>
+            </ul>
+            <div class="d-flex">
+                <form th:action="@{/logout}" method="post">
+                    <button type="submit" class="btn btn-outline-light">Logout</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<div class="container mt-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 th:text="${company.id == null ? 'Create New Company' : 'Edit Company'}"></h2>
+        <a th:href="@{/admin/companies}" class="btn btn-secondary">
+            Back to Companies
+        </a>
+    </div>
+
+    <!-- Company Form -->
+    <div class="card">
+        <div class="card-body">
+            <form th:action="@{/admin/companies}" th:object="${company}" method="post">
+                <input type="hidden" th:field="*{id}" />
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="name" class="form-label">Company Name*</label>
+                        <input type="text" class="form-control" id="name" th:field="*{name}" required>
+                        <div class="text-danger" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></div>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="taxId" class="form-label">Tax ID*</label>
+                        <input type="text" class="form-control" id="taxId" th:field="*{taxId}" required>
+                        <div class="text-danger" th:if="${#fields.hasErrors('taxId')}" th:errors="*{taxId}"></div>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <label for="address" class="form-label">Address</label>
+                        <input type="text" class="form-control" id="address" th:field="*{address}">
+                        <div class="text-danger" th:if="${#fields.hasErrors('address')}" th:errors="*{address}"></div>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label for="city" class="form-label">City</label>
+                        <input type="text" class="form-control" id="city" th:field="*{city}">
+                        <div class="text-danger" th:if="${#fields.hasErrors('city')}" th:errors="*{city}"></div>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="state" class="form-label">State/Province</label>
+                        <input type="text" class="form-control" id="state" th:field="*{state}">
+                        <div class="text-danger" th:if="${#fields.hasErrors('state')}" th:errors="*{state}"></div>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="postalCode" class="form-label">Postal Code</label>
+                        <input type="text" class="form-control" id="postalCode" th:field="*{postalCode}">
+                        <div class="text-danger" th:if="${#fields.hasErrors('postalCode')}" th:errors="*{postalCode}"></div>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label for="phone" class="form-label">Phone</label>
+                        <input type="text" class="form-control" id="phone" th:field="*{phone}">
+                        <div class="text-danger" th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}"></div>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="email" th:field="*{email}">
+                        <div class="text-danger" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="webSite" class="form-label">Website</label>
+                        <input type="url" class="form-control" id="webSite" th:field="*{webSite}">
+                        <div class="text-danger" th:if="${#fields.hasErrors('webSite')}" th:errors="*{webSite}"></div>
+                    </div>
+                </div>
+
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                    <a th:href="@{/admin/companies}" class="btn btn-secondary me-md-2">Cancel</a>
+                    <button type="submit" class="btn btn-primary">Save Company</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
