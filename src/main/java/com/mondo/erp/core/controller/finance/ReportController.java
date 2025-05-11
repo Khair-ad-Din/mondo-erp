@@ -31,6 +31,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.Objects;
 
 @Controller
 @RequestMapping("/finance/reports")
@@ -203,5 +204,97 @@ public class ReportController {
         model.addAttribute("liabilityEquityTotal", liabilityEquityTotal);
 
         return "finance/report/balance-sheet";
+    }
+
+    @GetMapping("/income-statement")
+    @PreAuthorize("hasAuthority('FINANCE_REPORT')")
+    public String incomeStatement(
+            Model model,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate,
+            @RequestParam(required = false) Long fiscalYearId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+
+        User user = userService.findByUsername(userDetails.getUsername()).orElseThrow();
+        Company company = user.getCompany();
+
+        // Get fiscal year if specified
+        FiscalYear fiscalYear = null;
+        if (fiscalYearId != null) {
+            fiscalYear = fiscalYearService.findById(fiscalYearId).orElse(null);
+        }
+
+        // Set default dates if not specified
+        if (fromDate == null || toDate == null) {
+            if (fiscalYear != null) {
+                // Use fiscal year dates
+                fromDate = fiscalYear.getStartDate();
+                toDate = fiscalYear.getEndDate();
+            } else {
+                // Use current year
+                int currentYear = LocalDate.now().getYear();
+                fromDate = LocalDate.of(currentYear, 1, 1);
+                toDate = LocalDate.now();
+            }
+        }
+
+        // Calculate income statement accounts
+        Map<Account, BigDecimal> accountBalances = reportService.calculateIncomeStatementAccounts(
+                company, fromDate, toDate, fiscalYear);
+
+        // Get accounts by type
+        List<Account> revenueAccounts = accountService.findAllByCompany(company).stream()
+                .filter(a -> a.getAccountType().getCategory() == AccountType.AccountCategory.REVENUE)
+                .collect(Collectors.toList());
+
+        List<Account> cogsAccounts = accountService.findAllByCompany(company).stream()
+                .filter(a -> a.getAccountType().getCategory() == AccountType.AccountCategory.EXPENSE)
+                .filter(a -> a.getCode().startsWith("5")) // Assuming 5xxx are COGS accounts
+                .collect(Collectors.toList());
+
+        List<Account> operatingExpenseAccounts = accountService.findAllByCompany(company).stream()
+                .filter(a -> a.getAccountType().getCategory() == AccountType.AccountCategory.EXPENSE)
+                .filter(a -> a.getCode().startsWith("6")) // Assuming 6xxx are operating expense accounts
+                .collect(Collectors.toList());
+
+        // Calculate totals
+        BigDecimal totalRevenue = revenueAccounts.stream()
+                .map(accountBalances::get)
+                .filter(Objects::nonNull)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal totalCOGS = cogsAccounts.stream()
+                .map(accountBalances::get)
+                .filter(Objects::nonNull)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal totalOperatingExpenses = operatingExpenseAccounts.stream()
+                .map(accountBalances::get)
+                .filter(Objects::nonNull)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal totalExpenses = totalCOGS.add(totalOperatingExpenses);
+
+        BigDecimal netIncome = totalRevenue.subtract(totalExpenses);
+
+        // Add data to model
+        model.addAttribute("company", company);
+        model.addAttribute("fromDate", fromDate);
+        model.addAttribute("toDate", toDate);
+        model.addAttribute("fiscalYear", fiscalYear);
+        model.addAttribute("accountBalances", accountBalances);
+
+        model.addAttribute("revenueAccounts", revenueAccounts);
+        model.addAttribute("cogsAccounts", cogsAccounts);
+        model.addAttribute("operatingExpenseAccounts", operatingExpenseAccounts);
+
+        model.addAttribute("totalRevenue", totalRevenue);
+        model.addAttribute("totalCOGS", totalCOGS);
+        model.addAttribute("totalOperatingExpenses", totalOperatingExpenses);
+        model.addAttribute("totalExpenses", totalExpenses);
+        model.addAttribute("netIncome", netIncome);
+        model.addAttribute("BigDecimal", BigDecimal.class);
+
+        return "finance/report/income-statement";
     }
 }

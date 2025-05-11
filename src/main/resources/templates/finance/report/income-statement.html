@@ -1,0 +1,153 @@
+<!-- src/main/resources/templates/finance/report/income-statement.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <th:block th:replace="fragments/head :: head(title='Income Statement')"></th:block>
+    <style>
+        .account-row {
+            border-bottom: 1px solid #eee;
+        }
+        .account-group {
+            font-weight: bold;
+            background-color: #f8f9fa;
+        }
+        .account-total {
+            font-weight: bold;
+            border-top: 2px solid #dee2e6;
+        }
+        .report-header {
+            margin-bottom: 30px;
+        }
+        .section-header {
+            background-color: #e9ecef;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .print-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 100;
+        }
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            .container {
+                width: 100%;
+                max-width: 100%;
+            }
+            body {
+                font-size: 11pt;
+            }
+            .card {
+                border: none;
+            }
+            .card-body {
+                padding: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+<!-- Navigation - not shown when printing -->
+<div th:replace="fragments/navbar :: navbar(activeLink='finance-reports')"></div>
+
+<div class="container mt-4">
+    <!-- Header -->
+    <div class="report-header text-center">
+        <h2 th:text="${company.name}">Company Name</h2>
+        <h3>Income Statement</h3>
+        <p>For the period <span th:text="${#temporals.format(fromDate, 'MMMM dd, yyyy')}">January 1, 2025</span> to
+            <span th:text="${#temporals.format(toDate, 'MMMM dd, yyyy')}">December 31, 2025</span></p>
+        <p th:if="${fiscalYear != null}" th:text="'Fiscal Year: ' + ${fiscalYear.name}"></p>
+    </div>
+
+    <!-- Back Button -->
+    <div class="mb-4 no-print">
+        <a th:href="@{/finance/reports}" class="btn btn-secondary">
+            Back to Reports
+        </a>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <!-- Revenue Section -->
+            <div class="row section-header py-2 mb-2">
+                <div class="col-8">REVENUE</div>
+                <div class="col-4 text-end">Amount</div>
+            </div>
+
+            <!-- Revenue Accounts -->
+            <div th:each="account : ${revenueAccounts}" class="row account-row py-1">
+                <div class="col-8 ps-4" th:text="${account.code + ' - ' + account.name}">Sales Revenue</div>
+                <div class="col-4 text-end" th:text="${#numbers.formatDecimal(accountBalances.get(account), 1, 2, 'POINT')}">0.00</div>
+            </div>
+
+            <!-- Total Revenue -->
+            <div class="row account-total py-2 mt-2 mb-4">
+                <div class="col-8">Total Revenue</div>
+                <div class="col-4 text-end">
+                    <span th:text="${#numbers.formatDecimal(totalRevenue, 1, 2, 'POINT')}">0.00</span>
+                </div>
+            </div>
+
+            <!-- Expenses Section -->
+            <div class="row section-header py-2 mb-2">
+                <div class="col-8">EXPENSES</div>
+                <div class="col-4 text-end">Amount</div>
+            </div>
+
+            <!-- Cost of Goods Sold Section -->
+            <div th:if="${!cogsAccounts.empty}" class="row account-group py-1">
+                <div class="col-8">Cost of Goods Sold</div>
+                <div class="col-4 text-end">
+                    <span th:text="${#numbers.formatDecimal(totalCOGS, 1, 2, 'POINT')}">0.00</span>
+                </div>
+            </div>
+
+            <div th:each="account : ${cogsAccounts}" class="row account-row py-1">
+                <div class="col-8 ps-4" th:text="${account.code + ' - ' + account.name}">Purchases</div>
+                <div class="col-4 text-end" th:text="${#numbers.formatDecimal(accountBalances.get(account), 1, 2, 'POINT')}">0.00</div>
+            </div>
+
+            <!-- Operating Expenses Section -->
+            <div th:if="${!operatingExpenseAccounts.empty}" class="row account-group py-1 mt-2">
+                <div class="col-8">Operating Expenses</div>
+                <div class="col-4 text-end">
+                    <span th:text="${#numbers.formatDecimal(totalOperatingExpenses, 1, 2, 'POINT')}">0.00</span>
+                </div>
+            </div>
+
+            <div th:each="account : ${operatingExpenseAccounts}" class="row account-row py-1">
+                <div class="col-8 ps-4" th:text="${account.code + ' - ' + account.name}">Rent Expense</div>
+                <div class="col-4 text-end" th:text="${#numbers.formatDecimal(accountBalances.get(account), 1, 2, 'POINT')}">0.00</div>
+            </div>
+
+            <!-- Total Expenses -->
+            <div class="row account-total py-2 mt-2">
+                <div class="col-8">Total Expenses</div>
+                <div class="col-4 text-end">
+                    <span th:text="${#numbers.formatDecimal(totalExpenses, 1, 2, 'POINT')}">0.00</span>
+                </div>
+            </div>
+
+            <!-- Net Income -->
+            <div class="row account-total py-2 mt-4" th:classappend="${netIncome.compareTo(BigDecimal.ZERO) >= 0 ? 'text-success' : 'text-danger'}">
+                <div class="col-8">Net Income</div>
+                <div class="col-4 text-end">
+                    <span th:text="${#numbers.formatDecimal(netIncome, 1, 2, 'POINT')}">0.00</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Print Button -->
+    <button class="btn btn-primary print-btn no-print" onclick="window.print()">
+        <i class="bi bi-printer"></i> Print Report
+    </button>
+</div>
+
+<th:block th:replace="fragments/scripts :: scripts"></th:block>
+</body>
+</html>
