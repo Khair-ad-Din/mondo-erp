@@ -14,6 +14,8 @@ public interface UserService {
 
     Optional<User> findByUsername(String username);
 
+    Optional<User> findByEmail(String email);
+
     List<User> findByCompany(Company company);
 
     User save(User user);
