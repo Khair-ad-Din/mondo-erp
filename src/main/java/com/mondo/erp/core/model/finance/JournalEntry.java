@@ -82,4 +82,103 @@ public class JournalEntry {
     public enum JournalEntryStatus {
         DRAFT, POSTED, APPROVED, VOIDED
     }
+
+    //------------------------------------------------------
+
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getReference() {
+        return reference;
+    }
+
+    public void setReference(String reference) {
+        this.reference = reference;
+    }
+
+    public LocalDate getEntryDate() {
+        return entryDate;
+    }
+
+    public void setEntryDate(LocalDate entryDate) {
+        this.entryDate = entryDate;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public JournalEntryStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(JournalEntryStatus status) {
+        this.status = status;
+    }
+
+    public List<JournalEntryLine> getEntryLines() {
+        return entryLines;
+    }
+
+    public void setEntryLines(List<JournalEntryLine> entryLines) {
+        this.entryLines = entryLines;
+    }
+
+    public FiscalYear getFiscalYear() {
+        return fiscalYear;
+    }
+
+    public void setFiscalYear(FiscalYear fiscalYear) {
+        this.fiscalYear = fiscalYear;
+    }
+
+    public User getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(User createdBy) {
+        this.createdBy = createdBy;
+    }
+
+    public User getApprovedBy() {
+        return approvedBy;
+    }
+
+    public void setApprovedBy(User approvedBy) {
+        this.approvedBy = approvedBy;
+    }
+
+    public Company getCompany() {
+        return company;
+    }
+
+    public void setCompany(Company company) {
+        this.company = company;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
 }

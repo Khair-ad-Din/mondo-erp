@@ -39,6 +39,39 @@ public class JournalEntryLine {
 
     //---------
 
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public JournalEntry getJournalEntry() {
+        return journalEntry;
+    }
+
+    public void setJournalEntry(JournalEntry journalEntry) {
+        this.journalEntry = journalEntry;
+    }
+
+    public Account getAccount() {
+        return account;
+    }
+
+    public void setAccount(Account account) {
+        this.account = account;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
     public BigDecimal getDebitAmount() {
         return debitAmount;
     }
@@ -53,5 +86,13 @@ public class JournalEntryLine {
 
     public void setCreditAmount(BigDecimal creditAmount) {
         this.creditAmount = creditAmount;
+    }
+
+    public Integer getLineNumber() {
+        return lineNumber;
+    }
+
+    public void setLineNumber(Integer lineNumber) {
+        this.lineNumber = lineNumber;
     }
 }
