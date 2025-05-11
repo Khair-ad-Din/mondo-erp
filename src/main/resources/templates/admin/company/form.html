@@ -2,42 +2,11 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
-    <meta charset="UTF-8">
-    <title th:text="${company.id == null ? 'Create Company' : 'Edit Company'} + ' - Mondo ERP'"></title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <th:block th:replace="fragments/head :: head(title=${company.id == null ? 'Create Company' : 'Edit Company'})"></th:block>
 </head>
 <body>
 <!-- Navigation -->
-<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="#">Mondo ERP - Admin</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav me-auto">
-                <li class="nav-item">
-                    <a class="nav-link" href="/mondo-erp/admindashboard">Dashboard</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/mondo-erp/admin/users">Users</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/mondo-erp/admin/roles">Roles</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link active" href="/mondo-erp/admin/companies">Companies</a>
-                </li>
-            </ul>
-            <div class="d-flex">
-                <form th:action="@{/logout}" method="post">
-                    <button type="submit" class="btn btn-outline-light">Logout</button>
-                </form>
-            </div>
-        </div>
-    </div>
-</nav>
+<div th:replace="fragments/navbar :: admin-navbar(activeLink='admin-companies')"></div>
 
 <div class="container mt-4">
     <!-- Header -->
@@ -120,6 +89,6 @@
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<th:block th:replace="fragments/scripts :: scripts"></th:block>
 </body>
 </html>
