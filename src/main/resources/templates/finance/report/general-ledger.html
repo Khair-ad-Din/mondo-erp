@@ -1,0 +1,151 @@
+<!-- src/main/resources/templates/finance/report/general-ledger.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <th:block th:replace="fragments/head :: head(title='General Ledger')"></th:block>
+    <style>
+        .report-header {
+            margin-bottom: 30px;
+        }
+        .section-header {
+            background-color: #e9ecef;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .account-header {
+            background-color: #f8f9fa;
+            font-weight: bold;
+            border-top: 2px solid #dee2e6;
+            margin-top: 1rem;
+        }
+        .transaction-row:nth-child(even) {
+            background-color: rgba(0,0,0,.05);
+        }
+        .account-total {
+            font-weight: bold;
+            border-top: 1px solid #dee2e6;
+            border-bottom: 2px solid #dee2e6;
+        }
+        .print-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 100;
+        }
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            .container {
+                width: 100%;
+                max-width: 100%;
+            }
+            body {
+                font-size: 11pt;
+            }
+            .card {
+                border: none;
+            }
+            .card-body {
+                padding: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+<!-- Navigation - not shown when printing -->
+<div th:replace="fragments/navbar :: navbar(activeLink='finance-reports')"></div>
+
+<div class="container-fluid mt-4">
+    <!-- Header -->
+    <div class="report-header text-center">
+        <h2 th:text="${company.name}">Company Name</h2>
+        <h3>General Ledger</h3>
+        <p>For the period <span th:text="${#temporals.format(fromDate, 'MMMM dd, yyyy')}">January 1, 2025</span> to
+            <span th:text="${#temporals.format(toDate, 'MMMM dd, yyyy')}">December 31, 2025</span></p>
+        <p th:if="${selectedAccount != null}" th:text="'Account: ' + ${selectedAccount.code + ' - ' + selectedAccount.name}"></p>
+    </div>
+
+    <!-- Back Button -->
+    <div class="mb-4 no-print">
+        <a th:href="@{/finance/reports}" class="btn btn-secondary">
+            Back to Reports
+        </a>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <!-- For each account in the ledger -->
+            <div th:each="accountEntry : ${ledger}" class="mb-4">
+                <!-- Extract account and ledger data -->
+                <div th:with="account=${accountEntry.key}, accountData=${accountEntry.value}">
+                    <!-- Account Header -->
+                    <div class="row account-header py-2">
+                        <div class="col-6">
+                            <span th:text="${account.code + ' - ' + account.name}">1010 - Cash</span>
+                            <small class="text-muted ms-2" th:text="'(' + ${account.accountType.category} + ')'">ASSET</small>
+                        </div>
+                        <div class="col-6 text-end">
+                            <span class="me-2">Starting Balance:</span>
+                            <span th:text="${#numbers.formatDecimal(accountData.startingBalance, 1, 2, 'POINT')}">0.00</span>
+                        </div>
+                    </div>
+
+                    <!-- Transactions Table -->
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Reference</th>
+                                <th>Description</th>
+                                <th class="text-end">Debit</th>
+                                <th class="text-end">Credit</th>
+                                <th class="text-end">Balance</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <!-- If no transactions -->
+                            <tr th:if="${accountData.transactions.empty}">
+                                <td colspan="6" class="text-center">No transactions during this period</td>
+                            </tr>
+
+                            <!-- Transactions -->
+                            <tr th:each="transaction : ${accountData.transactions}" class="transaction-row">
+                                <td th:text="${#temporals.format(transaction.date, 'yyyy-MM-dd')}">2025-01-01</td>
+                                <td th:text="${transaction.reference}">JE-2025-001</td>
+                                <td th:text="${transaction.description ?: 'No description'}">Initial investment</td>
+                                <td class="text-end" th:text="${transaction.debit > 0 ? #numbers.formatDecimal(transaction.debit, 1, 2, 'POINT') : ''}">0.00</td>
+                                <td class="text-end" th:text="${transaction.credit > 0 ? #numbers.formatDecimal(transaction.credit, 1, 2, 'POINT') : ''}">0.00</td>
+                                <td class="text-end" th:text="${#numbers.formatDecimal(transaction.runningBalance, 1, 2, 'POINT')}">0.00</td>
+                            </tr>
+                            </tbody>
+                            <tfoot>
+                            <tr class="account-total">
+                                <th colspan="3" class="text-end">Ending Balance</th>
+                                <th class="text-end" th:text="${#numbers.formatDecimal(debitTotals.get(account), 1, 2, 'POINT')}">0.00</th>
+                                <th class="text-end" th:text="${#numbers.formatDecimal(creditTotals.get(account), 1, 2, 'POINT')}">0.00</th>
+                                <th class="text-end" th:text="${#numbers.formatDecimal(accountData.endingBalance, 1, 2, 'POINT')}">0.00</th>
+                            </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- If no accounts -->
+            <div th:if="${ledger.isEmpty()}" class="alert alert-info">
+                No account data for the selected period.
+            </div>
+        </div>
+    </div>
+
+    <!-- Print Button -->
+    <button class="btn btn-primary print-btn no-print" onclick="window.print()">
+        <i class="bi bi-printer"></i> Print Report
+    </button>
+</div>
+
+<th:block th:replace="fragments/scripts :: scripts"></th:block>
+</body>
+</html>

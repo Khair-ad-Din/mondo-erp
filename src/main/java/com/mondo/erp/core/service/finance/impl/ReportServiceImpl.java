@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -206,6 +207,7 @@ public class ReportServiceImpl implements ReportService {
                 .filter(entry -> (entry.getStatus() == JournalEntry.JournalEntryStatus.APPROVED ||
                         entry.getStatus() == JournalEntry.JournalEntryStatus.POSTED) &&
                         !entry.getEntryDate().isAfter(toDate))
+                .sorted(Comparator.comparing(JournalEntry::getEntryDate))
                 .collect(Collectors.toList());
 
         // Calculate starting balances and transactions for each account
@@ -256,13 +258,6 @@ public class ReportServiceImpl implements ReportService {
                     }
                 }
             }
-
-            // Sort transactions by date
-            transactions.sort((t1, t2) -> {
-                LocalDate d1 = (LocalDate) t1.get("date");
-                LocalDate d2 = (LocalDate) t2.get("date");
-                return d1.compareTo(d2);
-            });
 
             // Calculate running balance
             BigDecimal runningBalance = startingBalance;

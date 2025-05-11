@@ -297,4 +297,76 @@ public class ReportController {
 
         return "finance/report/income-statement";
     }
+
+    @GetMapping("/general-ledger")
+    @PreAuthorize("hasAuthority('FINANCE_REPORT')")
+    public String generalLedger(
+            Model model,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate,
+            @RequestParam(required = false) Long accountId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+
+        User user = userService.findByUsername(userDetails.getUsername()).orElseThrow();
+        Company company = user.getCompany();
+
+        // Set default dates if not specified
+        if (fromDate == null) {
+            fromDate = LocalDate.now().withDayOfMonth(1); // First day of current month
+        }
+
+        if (toDate == null) {
+            toDate = LocalDate.now(); // Today
+        }
+
+        // Get selected account if specified
+        Account selectedAccount = null;
+        if (accountId != null) {
+            selectedAccount = accountService.findById(accountId).orElse(null);
+
+            // Security check - ensure user can only view accounts from their company
+            if (selectedAccount != null && !selectedAccount.getCompany().getId().equals(company.getId())) {
+                throw new SecurityException("Not authorized to view this account");
+            }
+        }
+
+        // Generate general ledger data
+        Map<Account, Object> ledgerData = reportService.calculateGeneralLedger(
+                company, fromDate, toDate, selectedAccount);
+
+        // Pre-calculate debit and credit totals for each account
+        Map<Account, BigDecimal> debitTotals = new HashMap<>();
+        Map<Account, BigDecimal> creditTotals = new HashMap<>();
+
+        for (Map.Entry<Account, Object> entry : ledgerData.entrySet()) {
+            Account account = entry.getKey();
+            Map<String, Object> accountData = (Map<String, Object>) entry.getValue();
+            List<Map<String, Object>> transactions = (List<Map<String, Object>>) accountData.get("transactions");
+
+            BigDecimal debitTotal = BigDecimal.ZERO;
+            BigDecimal creditTotal = BigDecimal.ZERO;
+
+            for (Map<String, Object> transaction : transactions) {
+                BigDecimal debit = (BigDecimal) transaction.get("debit");
+                BigDecimal credit = (BigDecimal) transaction.get("credit");
+
+                debitTotal = debitTotal.add(debit);
+                creditTotal = creditTotal.add(credit);
+            }
+
+            debitTotals.put(account, debitTotal);
+            creditTotals.put(account, creditTotal);
+        }
+
+        // Add data to model
+        model.addAttribute("company", company);
+        model.addAttribute("fromDate", fromDate);
+        model.addAttribute("toDate", toDate);
+        model.addAttribute("selectedAccount", selectedAccount);
+        model.addAttribute("ledger", ledgerData);
+        model.addAttribute("debitTotals", debitTotals);
+        model.addAttribute("creditTotals", creditTotals);
+
+        return "finance/report/general-ledger";
+    }
 }
