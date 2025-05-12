@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <th:block th:replace="fragments/head :: head(title='View Transaction')"></th:block>
+    <style>
+        .print-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 100;
+        }
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            body {
+                font-size: 12pt;
+            }
+        }
+    </style>
+</head>
+<body>
+<!-- Navigation -->
+<div th:replace="fragments/navbar :: navbar(activeLink='inventory-transactions')"></div>
+
+<div class="container mt-4">
+    <!-- Alerts -->
+    <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show no-print" role="alert">
+        <span th:text="${successMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show no-print" role="alert">
+        <span th:text="${errorMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Transaction Details</h2>
+        <div class="no-print">
+            <a th:href="@{/inventory/transactions}" class="btn btn-secondary">
+                Back to Transactions
+            </a>
+        </div>
+    </div>
+
+    <!-- Transaction Details Card -->
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">
+                <span th:text="${transaction.type}"></span> #<span th:text="${transaction.reference}"></span>
+            </h4>
+            <span th:class="${'badge ' +
+                        (transaction.type == T(com.mondo.erp.core.model.inventory.InventoryTransaction.TransactionType).PURCHASE ? 'bg-success' :
+                        (transaction.type == T(com.mondo.erp.core.model.inventory.InventoryTransaction.TransactionType).SALE ? 'bg-primary' : 'bg-warning'))}"
+                  th:text="${transaction.type}">
+            </span>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-3">
+                    <h6>Date</h6>
+                    <p th:text="${#temporals.format(transaction.transactionDate, 'yyyy-MM-dd')}"></p>
+                </div>
+                <div class="col-md-3">
+                    <h6>Created By</h6>
+                    <p th:text="${transaction.createdBy != null ? transaction.createdBy.firstname + ' ' + transaction.createdBy.lastname : 'N/A'}"></p>
+                </div>
+                <div class="col-md-3">
+                    <h6>Created At</h6>
+                    <p th:text="${#temporals.format(transaction.createdAt, 'yyyy-MM-dd HH:mm')}"></p>
+                </div>
+                <div class="col-md-3">
+                    <h6>Journal Entry</h6>
+                    <p>
+                        <a th:if="${transaction.journalEntry != null}"
+                           th:href="@{/finance/journal-entries/{id}/view(id=${transaction.journalEntry.id})}"
+                           class="badge bg-info text-decoration-none">
+                            <span th:text="${transaction.journalEntry.reference}"></span>
+                        </a>
+                        <span th:unless="${transaction.journalEntry != null}">No journal entry linked</span>
+                    </p>
+                </div>
+            </div>
+            <div class="mt-3">
+                <h6>Description</h6>
+                <p th:text="${transaction.description ?: 'No description provided.'}"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Transaction Lines Card -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">Items</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Product Code</th>
+                        <th>Product Name</th>
+                        <th class="text-end">Quantity</th>
+                        <th class="text-end">Unit Price</th>
+                        <th class="text-end">Total</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="line, stat : ${transaction.transactionLines}">
+                        <td th:text="${line.lineNumber != null ? line.lineNumber : stat.count}"></td>
+                        <td th:text="${line.product.code}"></td>
+                        <td th:text="${line.product.name}"></td>
+                        <td class="text-end" th:text="${line.quantity + ' ' + line.product.unit}"></td>
+                        <td class="text-end" th:text="${'$' + #numbers.formatDecimal(line.unitPrice, 1, 2, 'POINT')}"></td>
+                        <td class="text-end" th:text="${'$' + #numbers.formatDecimal(line.quantity * line.unitPrice, 1, 2, 'POINT')}"></td>
+                    </tr>
+                    </tbody>
+                    <tfoot>
+                    <tr>
+                        <th colspan="5" class="text-end">Total:</th>
+                        <th class="text-end" th:text="${'$' + #numbers.formatDecimal(transaction.totalAmount, 1, 2, 'POINT')}"></th>
+                    </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Print Button -->
+    <button class="btn btn-primary print-btn no-print" onclick="window.print()">
+        <i class="bi bi-printer"></i> Print
+    </button>
+</div>
+
+<th:block th:replace="fragments/scripts :: scripts"></th:block>
+</body>
+</html>

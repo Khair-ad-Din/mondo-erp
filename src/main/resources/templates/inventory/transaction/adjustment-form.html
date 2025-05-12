@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <th:block th:replace="fragments/head :: head(title='Inventory Adjustment')"></th:block>
+</head>
+<body>
+<!-- Navigation -->
+<div th:replace="fragments/navbar :: navbar(activeLink='inventory-transactions')"></div>
+
+<div class="container mt-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Inventory Adjustment</h2>
+        <a th:href="@{/inventory/transactions}" class="btn btn-secondary">
+            Back to Transactions
+        </a>
+    </div>
+
+    <!-- Adjustment Form -->
+    <div class="card">
+        <div class="card-body">
+            <form th:action="@{/inventory/transactions/adjustment}" th:object="${transaction}" method="post" id="adjustmentForm">
+                <input type="hidden" th:field="*{id}" />
+                <input type="hidden" th:field="*{type}" value="ADJUSTMENT" />
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="reference" class="form-label">Reference*</label>
+                        <input type="text" class="form-control" id="reference" th:field="*{reference}" required>
+                        <div class="text-danger" th:if="${#fields.hasErrors('reference')}" th:errors="*{reference}"></div>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="transactionDate" class="form-label">Date*</label>
+                        <input type="date" class="form-control" id="transactionDate" th:field="*{transactionDate}" required>
+                        <div class="text-danger" th:if="${#fields.hasErrors('transactionDate')}" th:errors="*{transactionDate}"></div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="description" class="form-label">Description*</label>
+                    <textarea class="form-control" id="description" th:field="*{description}" rows="2" required
+                              placeholder="Provide a reason for this inventory adjustment"></textarea>
+                    <div class="text-danger" th:if="${#fields.hasErrors('description')}" th:errors="*{description}"></div>
+                </div>
+
+                <!-- Transaction Lines -->
+                <h4 class="mt-4 mb-3">Adjustment Items</h4>
+                <p class="text-muted">Enter the new quantity for each product. The system will automatically calculate the adjustment.</p>
+
+                <div class="table-responsive">
+                    <table class="table table-bordered" id="itemsTable">
+                        <thead class="table-light">
+                        <tr>
+                            <th style="width: 5%;">#</th>
+                            <th style="width: 40%;">Product</th>
+                            <th style="width: 20%;">Current Quantity</th>
+                            <th style="width: 20%;">New Quantity</th>
+                            <th style="width: 15%;">Action</th>
+                        </tr>
+                        </thead>
+                        <tbody id="transactionLinesContainer">
+                        <tr th:each="line, stat : *{transactionLines}" th:id="'line-row-' + ${stat.index}">
+                            <td>
+                                <input type="hidden" th:field="*{transactionLines[__${stat.index}__].id}" />
+                                <input type="hidden" th:field="*{transactionLines[__${stat.index}__].lineNumber}"
+                                       th:value="${stat.index + 1}" />
+                                <input type="hidden" th:field="*{transactionLines[__${stat.index}__].unitPrice}" value="0" />
+                                <span th:text="${stat.index + 1}"></span>
+                            </td>
+                            <td>
+                                <select class="form-select product-select" th:field="*{transactionLines[__${stat.index}__].product}" required
+                                        onchange="updateProductDetails(this)">
+                                    <option value="">-- Select Product --</option>
+                                    <option th:each="product : ${products}"
+                                            th:value="${product.id}"
+                                            th:text="${product.code + ' - ' + product.name}"
+                                            th:attr="data-unit=${product.unit},
+                                                    data-stock=${product.stockQuantity}">
+                                    </option>
+                                </select>
+                                <div class="text-danger" th:if="${#fields.hasErrors('transactionLines[' + stat.index + '].product')}"
+                                     th:errors="*{transactionLines[__${stat.index}__].product}"></div>
+                            </td>
+                            <td>
+                                <div class="input-group">
+                                    <input type="text" class="form-control current-stock" readonly>
+                                    <span class="input-group-text unit-display">unit</span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="input-group">
+                                    <input type="number" class="form-control quantity-input"
+                                           th:field="*{transactionLines[__${stat.index}__].quantity}"
+                                           min="0" required>
+                                    <span class="input-group-text unit-display">unit</span>
+                                </div>
+                                <div class="text-danger" th:if="${#fields.hasErrors('transactionLines[' + stat.index + '].quantity')}"
+                                     th:errors="*{transactionLines[__${stat.index}__].quantity}"></div>
+                            </td>
+                            <td>
+                                <button type="button" class="btn btn-danger btn-sm" onclick="removeLine(this)">
+                                    Remove
+                                </button>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="text-center mb-3">
+                    <button type="button" class="btn btn-info" id="addLineBtn">
+                        Add Product
+                    </button>
+                </div>
+
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                    <a th:href="@{/inventory/transactions}" class="btn btn-secondary me-md-2">Cancel</a>
+                    <button type="submit" class="btn btn-primary">Save Adjustment</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<th:block th:replace="fragments/scripts :: scripts"></th:block>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize the form
+        document.querySelectorAll('.product-select').forEach(select => {
+            if (select.value) {
+                updateProductDetails(select);
+            }
+        });
+
+        // Add event listener to the add line button
+        document.getElementById('addLineBtn').addEventListener('click', function() {
+            addNewLine();
+        });
+
+        // Add submit event listener to validate the form
+        document.getElementById('adjustmentForm').addEventListener('submit', function(event) {
+            if (!validateForm()) {
+                event.preventDefault();
+            }
+        });
+    });
+
+    function addNewLine() {
+        const container = document.getElementById('transactionLinesContainer');
+        const lineCount = container.children.length;
+        const newIndex = lineCount;
+
+        // Create a new row
+        const newRow = document.createElement('tr');
+        newRow.id = 'line-row-' + newIndex;
+
+        // Line number cell
+        let cell = document.createElement('td');
+        cell.innerHTML = `
+            <input type="hidden" name="transactionLines[${newIndex}].id" id="transactionLines${newIndex}.id" />
+            <input type="hidden" name="transactionLines[${newIndex}].lineNumber" id="transactionLines${newIndex}.lineNumber" value="${newIndex + 1}" />
+            <input type="hidden" name="transactionLines[${newIndex}].unitPrice" id="transactionLines${newIndex}.unitPrice" value="0" />
+            ${newIndex + 1}
+        `;
+        newRow.appendChild(cell);
+
+        // Product selection cell
+        cell = document.createElement('td');
+
+        // Build the product options HTML
+        let productOptionsHtml = '<option value="">-- Select Product --</option>';
+
+        // Clone product options from an existing select
+        const productSelects = document.querySelectorAll('.product-select');
+        if (productSelects.length > 0) {
+            const options = productSelects[0].querySelectorAll('option');
+            options.forEach((option, i) => {
+                if (i > 0) { // Skip the first placeholder option
+                    const unit = option.getAttribute('data-unit');
+                    const stock = option.getAttribute('data-stock');
+                    productOptionsHtml += `<option value="${option.value}" data-unit="${unit}" data-stock="${stock}">${option.text}</option>`;
+                }
+            });
+        }
+
+        cell.innerHTML = `
+            <select class="form-select product-select" name="transactionLines[${newIndex}].product" id="transactionLines${newIndex}.product"
+                    required onchange="updateProductDetails(this)">
+                ${productOptionsHtml}
+            </select>
+        `;
+        newRow.appendChild(cell);
+
+        // Current stock cell
+        cell = document.createElement('td');
+        cell.innerHTML = `
+            <div class="input-group">
+                <input type="text" class="form-control current-stock" readonly>
+                <span class="input-group-text unit-display">unit</span>
+            </div>
+        `;
+        newRow.appendChild(cell);
+
+        // New quantity cell
+        cell = document.createElement('td');
+        cell.innerHTML = `
+            <div class="input-group">
+                <input type="number" class="form-control quantity-input" name="transactionLines[${newIndex}].quantity"
+                       id="transactionLines${newIndex}.quantity" min="0" value="0" required>
+                <span class="input-group-text unit-display">unit</span>
+            </div>
+        `;
+        newRow.appendChild(cell);
+
+        // Action cell
+        cell = document.createElement('td');
+        cell.innerHTML = `
+            <button type="button" class="btn btn-danger btn-sm" onclick="removeLine(this)">
+                Remove
+            </button>
+        `;
+        newRow.appendChild(cell);
+
+        // Add the new row to the container
+        container.appendChild(newRow);
+    }
+
+    function removeLine(button) {
+        const row = button.closest('tr');
+        if (document.getElementById('transactionLinesContainer').children.length > 1) {
+            row.remove();
+            // Renumber the remaining rows
+            renumberRows();
+        } else {
+            alert('At least one item is required.');
+        }
+    }
+
+    function renumberRows() {
+        const rows = document.getElementById('transactionLinesContainer').children;
+        for (let i = 0; i < rows.length; i++) {
+            const row = rows[i];
+            row.id = 'line-row-' + i;
+            row.cells[0].querySelector('input[name$=".lineNumber"]').value = i + 1;
+            row.cells[0].lastChild.textContent = i + 1;
+
+            // Update the input name and id attributes
+            const inputs = row.querySelectorAll('input, select');
+            inputs.forEach(input => {
+                const name = input.name;
+                const id = input.id;
+                if (name) {
+                    input.name = name.replace(/transactionLines\[\d+\]/, `transactionLines[${i}]`);
+                }
+                if (id) {
+                    input.id = id.replace(/transactionLines\d+/, `transactionLines${i}`);
+                }
+            });
+        }
+    }
+
+    function updateProductDetails(select) {
+        const row = select.closest('tr');
+        const option = select.options[select.selectedIndex];
+        const unitDisplays = row.querySelectorAll('.unit-display');
+        const currentStockInput = row.querySelector('.current-stock');
+        const quantityInput = row.querySelector('.quantity-input');
+
+        if (option.value) {
+            const unit = option.getAttribute('data-unit');
+            const stock = option.getAttribute('data-stock');
+
+            // Update unit displays
+            unitDisplays.forEach(span => {
+                span.textContent = unit;
+            });
+
+            // Update current stock display
+            currentStockInput.value = stock;
+
+            // Set new quantity to current stock by default (no change)
+            quantityInput.value = stock;
+
+            // Update min attribute to allow zero
+            quantityInput.setAttribute('min', '0');
+        } else {
+            // Reset fields
+            unitDisplays.forEach(span => {
+                span.textContent = 'unit';
+            });
+            currentStockInput.value = '';
+            quantityInput.value = '0';
+        }
+    }
+
+    function validateForm() {
+        // Check if there are any lines
+        if (document.getElementById('transactionLinesContainer').children.length === 0) {
+            alert('At least one product is required.');
+            return false;
+        }
+
+        // Check if at least one product is selected
+        const productSelects = document.querySelectorAll('.product-select');
+        let hasProduct = false;
+        for (let i = 0; i < productSelects.length; i++) {
+            if (productSelects[i].value) {
+                hasProduct = true;
+                break;
+            }
+        }
+
+        if (!hasProduct) {
+            alert('Please select at least one product.');
+            return false;
+        }
+
+        // Check for duplicate products
+        const selectedProducts = {};
+        let hasDuplicates = false;
+
+        productSelects.forEach((select, index) => {
+            if (select.value) {
+                if (selectedProducts[select.value]) {
+                    hasDuplicates = true;
+                } else {
+                    selectedProducts[select.value] = true;
+                }
+            }
+        });
+
+        if (hasDuplicates) {
+            alert('Duplicate products found. Please select each product only once.');
+            return false;
+        }
+
+        // Check for valid quantities
+        const quantityInputs = document.querySelectorAll('.quantity-input');
+        for (let i = 0; i < quantityInputs.length; i++) {
+            const quantityInput = quantityInputs[i];
+            const quantity = parseInt(quantityInput.value);
+
+            if (isNaN(quantity) || quantity < 0) {
+                alert('Quantity cannot be negative.');
+                quantityInput.focus();
+                return false;
+            }
+        }
+
+        // Make sure there's at least one change in quantity
+        let hasChange = false;
+        const rows = document.querySelectorAll('#transactionLinesContainer tr');
+
+        for (let i = 0; i < rows.length; i++) {
+            const row = rows[i];
+            const currentStock = parseInt(row.querySelector('.current-stock').value) || 0;
+            const newQuantity = parseInt(row.querySelector('.quantity-input').value) || 0;
+
+            if (currentStock !== newQuantity) {
+                hasChange = true;
+                break;
+            }
+        }
+
+        if (!hasChange) {
+            alert('No changes detected. Please adjust at least one product quantity.');
+            return false;
+        }
+
+        return true;
+    }
+</script>
+</body>
+</html>

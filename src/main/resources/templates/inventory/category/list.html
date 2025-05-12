@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <th:block th:replace="fragments/head :: head(title='Product Categories')"></th:block>
+</head>
+<body>
+<!-- Navigation -->
+<div th:replace="fragments/navbar :: navbar(activeLink='inventory-categories')"></div>
+
+<div class="container mt-4">
+    <!-- Alerts -->
+    <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <span th:text="${successMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <span th:text="${errorMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Product Categories</h2>
+        <div sec:authorize="hasAuthority('INVENTORY_CREATE')">
+            <a th:href="@{/inventory/categories/new}" class="btn btn-primary">
+                <i class="bi bi-plus"></i> New Category
+            </a>
+        </div>
+    </div>
+
+    <!-- Categories Table -->
+    <div class="card">
+        <div class="card-body">
+            <table class="table table-striped table-hover">
+                <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>Product Count</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="category : ${categories}">
+                    <td th:text="${category.name}"></td>
+                    <td th:text="${category.description}"></td>
+                    <td th:text="${#lists.size(category.products)}"></td>
+                    <td>
+                        <div class="btn-group btn-group-sm">
+                            <a th:href="@{/inventory/categories/{id}/edit(id=${category.id})}"
+                               class="btn btn-outline-primary"
+                               sec:authorize="hasAuthority('INVENTORY_UPDATE')">
+                                Edit
+                            </a>
+                            <a th:href="@{/inventory/categories/{id}/delete(id=${category.id})}"
+                               class="btn btn-outline-danger"
+                               sec:authorize="hasAuthority('INVENTORY_DELETE')"
+                               onclick="return confirm('Are you sure you want to delete this category?')">
+                                Delete
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(categories)}">
+                    <td colspan="4" class="text-center">No categories found</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<th:block th:replace="fragments/scripts :: scripts"></th:block>
+</body>
+</html>

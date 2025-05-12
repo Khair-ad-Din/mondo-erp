@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <th:block th:replace="fragments/head :: head(title='Stock Level Report')"></th:block>
+    <style>
+        .stock-warning {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        .stock-normal {
+            color: #198754;
+        }
+        .print-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 100;
+        }
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            .container {
+                width: 100%;
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+<!-- Navigation -->
+<div th:replace="fragments/navbar :: navbar(activeLink='inventory-reports')"></div>
+
+<div class="container mt-4">
+    <!-- Header -->
+    <div class="text-center mb-4">
+        <h2>Stock Level Report</h2>
+        <p>Generated on <span th:text="${#temporals.format(#temporals.createNow(), 'MMMM dd, yyyy')}">May 12, 2025</span></p>
+    </div>
+
+    <!-- Filter Form -->
+    <div class="card mb-4 no-print">
+        <div class="card-body">
+            <form th:action="@{/inventory/reports/stock-level}" method="get" class="row g-3">
+                <div class="col-md-4">
+                    <label for="categoryId" class="form-label">Category</label>
+                    <select id="categoryId" name="categoryId" class="form-select">
+                        <option value="">All Categories</option>
+                        <option th:each="category : ${categories}"
+                                th:value="${category.id}"
+                                th:text="${category.name}"
+                                th:selected="${param.categoryId != null && param.categoryId[0] == category.id.toString()}">
+                        </option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="showInactive" class="form-label">Show Inactive Products</label>
+                    <select id="showInactive" name="showInactive" class="form-select">
+                        <option value="false" th:selected="${param.showInactive == null || param.showInactive[0] == 'false'}">No</option>
+                        <option value="true" th:selected="${param.showInactive != null && param.showInactive[0] == 'true'}">Yes</option>
+                    </select>
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">Generate Report</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Stock Table -->
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead>
+                    <tr>
+                        <th>Code</th>
+                        <th>Product Name</th>
+                        <th>Category</th>
+                        <th class="text-end">Stock Quantity</th>
+                        <th class="text-end">Cost Value</th>
+                        <th class="text-end">Sale Value</th>
+                        <th class="text-center">Status</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="product : ${products}">
+                        <td th:text="${product.code}"></td>
+                        <td th:text="${product.name}"></td>
+                        <td th:text="${product.category != null ? product.category.name : '-'}"></td>
+                        <td class="text-end" th:classappend="${product.stockQuantity <= 0 ? 'stock-warning' : 'stock-normal'}"
+                            th:text="${product.stockQuantity + ' ' + product.unit}"></td>
+                        <td class="text-end" th:text="${'$' + #numbers.formatDecimal(product.stockQuantity * product.costPrice, 1, 2, 'POINT')}"></td>
+                        <td class="text-end" th:text="${'$' + #numbers.formatDecimal(product.stockQuantity * product.salePrice, 1, 2, 'POINT')}"></td>
+                        <td class="text-center">
+                            <span th:if="${product.active}" class="badge bg-success">Active</span>
+                            <span th:unless="${product.active}" class="badge bg-danger">Inactive</span>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(products)}">
+                        <td colspan="7" class="text-center">No products found</td>
+                    </tr>
+                    </tbody>
+                    <tfoot th:if="${!#lists.isEmpty(products)}">
+                    <tr>
+                        <th colspan="4" class="text-end">Total:</th>
+                        <th class="text-end" th:text="${'$' + #numbers.formatDecimal(totalCostValue, 1, 2, 'POINT')}"></th>
+                        <th class="text-end" th:text="${'$' + #numbers.formatDecimal(totalSaleValue, 1, 2, 'POINT')}"></th>
+                        <th></th>
+                    </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Print Button -->
+    <button class="btn btn-primary print-btn no-print" onclick="window.print()">
+        <i class="bi bi-printer"></i> Print Report
+    </button>
+</div>
+
+<th:block th:replace="fragments/scripts :: scripts"></th:block>
+</body>
+</html>

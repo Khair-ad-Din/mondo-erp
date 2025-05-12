@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <th:block th:replace="fragments/head :: head(title='New Purchase')"></th:block>
+</head>
+<body>
+<!-- Navigation -->
+<div th:replace="fragments/navbar :: navbar(activeLink='inventory-transactions')"></div>
+
+<div class="container mt-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>New Purchase</h2>
+        <a th:href="@{/inventory/transactions}" class="btn btn-secondary">
+            Back to Transactions
+        </a>
+    </div>
+
+    <!-- Purchase Form -->
+    <div class="card">
+        <div class="card-body">
+            <form th:action="@{/inventory/transactions/purchase}" th:object="${transaction}" method="post" id="purchaseForm">
+                <input type="hidden" th:field="*{id}" />
+                <input type="hidden" th:field="*{type}" value="PURCHASE" />
+
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label for="reference" class="form-label">Reference*</label>
+                        <input type="text" class="form-control" id="reference" th:field="*{reference}" required>
+                        <div class="text-danger" th:if="${#fields.hasErrors('reference')}" th:errors="*{reference}"></div>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="transactionDate" class="form-label">Date*</label>
+                        <input type="date" class="form-control" id="transactionDate" th:field="*{transactionDate}" required>
+                        <div class="text-danger" th:if="${#fields.hasErrors('transactionDate')}" th:errors="*{transactionDate}"></div>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="accountingMethod" class="form-label">Accounting Method*</label>
+                        <select class="form-select" id="accountingMethod" name="accountingMethod" required>
+                            <option value="AP">Credit Accounts Payable</option>
+                            <option value="CASH">Debit Cash</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="description" class="form-label">Description</label>
+                    <textarea class="form-control" id="description" th:field="*{description}" rows="2"></textarea>
+                    <div class="text-danger" th:if="${#fields.hasErrors('description')}" th:errors="*{description}"></div>
+                </div>
+
+                <!-- Transaction Lines -->
+                <h4 class="mt-4 mb-3">Purchase Items</h4>
+
+                <div class="table-responsive">
+                    <table class="table table-bordered" id="itemsTable">
+                        <thead class="table-light">
+                        <tr>
+                            <th style="width: 5%;">#</th>
+                            <th style="width: 40%;">Product</th>
+                            <th style="width: 15%;">Quantity</th>
+                            <th style="width: 15%;">Unit Price</th>
+                            <th style="width: 15%;">Total</th>
+                            <th style="width: 10%;">Action</th>
+                        </tr>
+                        </thead>
+                        <tbody id="transactionLinesContainer">
+                        <tr th:each="line, stat : *{transactionLines}" th:id="'line-row-' + ${stat.index}">
+                            <td>
+                                <input type="hidden" th:field="*{transactionLines[__${stat.index}__].id}" />
+                                <input type="hidden" th:field="*{transactionLines[__${stat.index}__].lineNumber}"
+                                       th:value="${stat.index + 1}" />
+                                <span th:text="${stat.index + 1}"></span>
+                            </td>
+                            <td>
+                                <select class="form-select product-select" th:field="*{transactionLines[__${stat.index}__].product}" required
+                                        onchange="updateProductDetails(this)">
+                                    <option value="">-- Select Product --</option>
+                                    <option th:each="product : ${products}"
+                                            th:value="${product.id}"
+                                            th:text="${product.code + ' - ' + product.name}"
+                                            th:attr="data-cost-price=${product.costPrice},
+                                                    data-unit=${product.unit}">
+                                    </option>
+                                </select>
+                                <div class="text-danger" th:if="${#fields.hasErrors('transactionLines[' + stat.index + '].product')}"
+                                     th:errors="*{transactionLines[__${stat.index}__].product}"></div>
+                            </td>
+                            <td>
+                                <div class="input-group">
+                                    <input type="number" class="form-control quantity-input"
+                                           th:field="*{transactionLines[__${stat.index}__].quantity}"
+                                           min="1" required onchange="calculateRowTotal(this)">
+                                    <span class="input-group-text unit-display">unit</span>
+                                </div>
+                                <div class="text-danger" th:if="${#fields.hasErrors('transactionLines[' + stat.index + '].quantity')}"
+                                     th:errors="*{transactionLines[__${stat.index}__].quantity}"></div>
+                            </td>
+                            <td>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" class="form-control price-input"
+                                           th:field="*{transactionLines[__${stat.index}__].unitPrice}"
+                                           step="0.01" min="0" required onchange="calculateRowTotal(this)">
+                                </div>
+                                <div class="text-danger" th:if="${#fields.hasErrors('transactionLines[' + stat.index + '].unitPrice')}"
+                                     th:errors="*{transactionLines[__${stat.index}__].unitPrice}"></div>
+                            </td>
+                            <td>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="text" class="form-control line-total" readonly>
+                                </div>
+                            </td>
+                            <td>
+                                <button type="button" class="btn btn-danger btn-sm" onclick="removeLine(this)">
+                                    Remove
+                                </button>
+                            </td>
+                        </tr>
+                        </tbody>
+                        <tfoot>
+                        <tr>
+                            <td colspan="4" class="text-end"><strong>Total</strong></td>
+                            <td>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="text" class="form-control" id="grandTotal" readonly>
+                                </div>
+                            </td>
+                            <td></td>
+                        </tr>
+                        </tfoot>
+                    </table>
+                </div>
+
+                <div class="text-center mb-3">
+                    <button type="button" class="btn btn-info" id="addLineBtn">
+                        Add Product
+                    </button>
+                </div>
+
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                    <a th:href="@{/inventory/transactions}" class="btn btn-secondary me-md-2">Cancel</a>
+                    <button type="submit" class="btn btn-primary">Save Purchase</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<th:block th:replace="fragments/scripts :: scripts"></th:block>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize calculations
+        updateAllTotals();
+
+        // Add event listener to the add line button
+        document.getElementById('addLineBtn').addEventListener('click', function() {
+            addNewLine();
+        });
+
+        // Add submit event listener to validate the form
+        document.getElementById('purchaseForm').addEventListener('submit', function(event) {
+            if (!validateForm()) {
+                event.preventDefault();
+            }
+        });
+    });
+
+    function addNewLine() {
+        const container = document.getElementById('transactionLinesContainer');
+        const lineCount = container.children.length;
+        const newIndex = lineCount;
+
+        // Create a new row
+        const newRow = document.createElement('tr');
+        newRow.id = 'line-row-' + newIndex;
+
+        // Line number cell
+        let cell = document.createElement('td');
+        cell.innerHTML = `
+            <input type="hidden" name="transactionLines[${newIndex}].id" id="transactionLines${newIndex}.id" />
+            <input type="hidden" name="transactionLines[${newIndex}].lineNumber" id="transactionLines${newIndex}.lineNumber" value="${newIndex + 1}" />
+            ${newIndex + 1}
+        `;
+        newRow.appendChild(cell);
+
+        // Product selection cell
+        cell = document.createElement('td');
+
+        // Build the product options HTML
+        let productOptionsHtml = '<option value="">-- Select Product --</option>';
+
+        // Clone product options from an existing select
+        const productSelects = document.querySelectorAll('.product-select');
+        if (productSelects.length > 0) {
+            const options = productSelects[0].querySelectorAll('option');
+            options.forEach((option, i) => {
+                if (i > 0) { // Skip the first placeholder option
+                    const costPrice = option.getAttribute('data-cost-price');
+                    const unit = option.getAttribute('data-unit');
+                    productOptionsHtml += `<option value="${option.value}" data-cost-price="${costPrice}" data-unit="${unit}">${option.text}</option>`;
+                }
+            });
+        }
+
+        cell.innerHTML = `
+            <select class="form-select product-select" name="transactionLines[${newIndex}].product" id="transactionLines${newIndex}.product"
+                    required onchange="updateProductDetails(this)">
+                ${productOptionsHtml}
+            </select>
+        `;
+        newRow.appendChild(cell);
+
+        // Quantity cell
+        cell = document.createElement('td');
+        cell.innerHTML = `
+            <div class="input-group">
+                <input type="number" class="form-control quantity-input" name="transactionLines[${newIndex}].quantity"
+                       id="transactionLines${newIndex}.quantity" min="1" value="1" required onchange="calculateRowTotal(this)">
+                <span class="input-group-text unit-display">unit</span>
+            </div>
+        `;
+        newRow.appendChild(cell);
+
+        // Unit price cell
+        cell = document.createElement('td');
+        cell.innerHTML = `
+            <div class="input-group">
+                <span class="input-group-text">$</span>
+                <input type="number" class="form-control price-input" name="transactionLines[${newIndex}].unitPrice"
+                       id="transactionLines${newIndex}.unitPrice" step="0.01" min="0" value="0.00" required
+                       onchange="calculateRowTotal(this)">
+            </div>
+        `;
+        newRow.appendChild(cell);
+
+        // Line total cell
+        cell = document.createElement('td');
+        cell.innerHTML = `
+            <div class="input-group">
+                <span class="input-group-text">$</span>
+                <input type="text" class="form-control line-total" readonly value="0.00">
+            </div>
+        `;
+        newRow.appendChild(cell);
+
+        // Action cell
+        cell = document.createElement('td');
+        cell.innerHTML = `
+            <button type="button" class="btn btn-danger btn-sm" onclick="removeLine(this)">
+                Remove
+            </button>
+        `;
+        newRow.appendChild(cell);
+
+        // Add the new row to the container
+        container.appendChild(newRow);
+
+        // Update totals
+        updateAllTotals();
+    }
+
+    function removeLine(button) {
+        const row = button.closest('tr');
+        if (document.getElementById('transactionLinesContainer').children.length > 1) {
+            row.remove();
+            // Renumber the remaining rows
+            renumberRows();
+            // Update totals
+            updateAllTotals();
+        } else {
+            alert('At least one item is required.');
+        }
+    }
+
+    function renumberRows() {
+        const rows = document.getElementById('transactionLinesContainer').children;
+        for (let i = 0; i < rows.length; i++) {
+            const row = rows[i];
+            row.id = 'line-row-' + i;
+            row.cells[0].querySelector('input[name$=".lineNumber"]').value = i + 1;
+            row.cells[0].lastChild.textContent = i + 1;
+
+            // Update the input name and id attributes
+            const inputs = row.querySelectorAll('input, select');
+            inputs.forEach(input => {
+                const name = input.name;
+                const id = input.id;
+                if (name) {
+                    input.name = name.replace(/transactionLines\[\d+\]/, `transactionLines[${i}]`);
+                }
+                if (id) {
+                    input.id = id.replace(/transactionLines\d+/, `transactionLines${i}`);
+                }
+            });
+        }
+    }
+
+    function updateProductDetails(select) {
+        const row = select.closest('tr');
+        const option = select.options[select.selectedIndex];
+        const unitDisplay = row.querySelector('.unit-display');
+        const priceInput = row.querySelector('.price-input');
+
+        if (option.value) {
+            unitDisplay.textContent = option.getAttribute('data-unit');
+            priceInput.value = option.getAttribute('data-cost-price');
+        } else {
+            unitDisplay.textContent = 'unit';
+            priceInput.value = '0.00';
+        }
+
+        calculateRowTotal(select);
+    }
+
+    function calculateRowTotal(input) {
+        const row = input.closest('tr');
+        const quantity = parseFloat(row.querySelector('.quantity-input').value) || 0;
+        const price = parseFloat(row.querySelector('.price-input').value) || 0;
+        const totalInput = row.querySelector('.line-total');
+
+        const total = quantity * price;
+        totalInput.value = total.toFixed(2);
+
+        updateGrandTotal();
+    }
+
+    function updateAllTotals() {
+        const rows = document.querySelectorAll('#transactionLinesContainer tr');
+        rows.forEach(row => {
+            const quantityInput = row.querySelector('.quantity-input');
+            if (quantityInput) {
+                calculateRowTotal(quantityInput);
+            }
+        });
+    }
+
+    function updateGrandTotal() {
+        const totalInputs = document.querySelectorAll('.line-total');
+        let grandTotal = 0;
+
+        totalInputs.forEach(input => {
+            grandTotal += parseFloat(input.value) || 0;
+        });
+
+        document.getElementById('grandTotal').value = grandTotal.toFixed(2);
+    }
+
+    function validateForm() {
+        // Check if there are any lines
+        if (document.getElementById('transactionLinesContainer').children.length === 0) {
+            alert('At least one product is required.');
+            return false;
+        }
+
+        // Check if at least one product is selected
+        const productSelects = document.querySelectorAll('.product-select');
+        let hasProduct = false;
+        for (let i = 0; i < productSelects.length; i++) {
+            if (productSelects[i].value) {
+                hasProduct = true;
+                break;
+            }
+        }
+
+        if (!hasProduct) {
+            alert('Please select at least one product.');
+            return false;
+        }
+
+        // Check if total is greater than zero
+        const grandTotal = parseFloat(document.getElementById('grandTotal').value) || 0;
+        if (grandTotal <= 0) {
+            alert('Total amount must be greater than zero.');
+            return false;
+        }
+
+        return true;
+    }
+</script>
+</body>
+</html>

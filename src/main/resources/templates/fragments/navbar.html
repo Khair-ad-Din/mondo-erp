@@ -41,6 +41,27 @@
                     </ul>
                 </li>
 
+                <!-- Inventory Module -->
+                <li class="nav-item dropdown" sec:authorize="hasAuthority('INVENTORY_READ')">
+                    <a class="nav-link dropdown-toggle"
+                       th:classappend="${activeLink.startsWith('inventory') ? 'active' : ''}"
+                       href="#" id="inventoryDropdown" role="button"
+                       data-bs-toggle="dropdown" aria-expanded="false">
+                        Inventory
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="inventoryDropdown">
+                        <li><a class="dropdown-item" th:classappend="${activeLink == 'inventory-products' ? 'active' : ''}"
+                               href="/mondo-erp/inventory/products">Products</a></li>
+                        <li><a class="dropdown-item" th:classappend="${activeLink == 'inventory-categories' ? 'active' : ''}"
+                               href="/mondo-erp/inventory/categories">Categories</a></li>
+                        <li><a class="dropdown-item" th:classappend="${activeLink == 'inventory-transactions' ? 'active' : ''}"
+                               href="/mondo-erp/inventory/transactions">Transactions</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" th:classappend="${activeLink == 'inventory-reports' ? 'active' : ''}"
+                               href="/mondo-erp/inventory/reports">Inventory Reports</a></li>
+                    </ul>
+                </li>
+
                 <!-- Admin Module -->
                 <li class="nav-item dropdown" sec:authorize="hasRole('ADMIN')">
                     <a class="nav-link dropdown-toggle"
