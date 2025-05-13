@@ -49,4 +49,9 @@ public class CompanyServiceImpl implements CompanyService {
     public boolean existsByTaxId(String taxId) {
         return companyRepository.existsByTaxId(taxId);
     }
+
+    @Override
+    public long countAll() {
+        return companyRepository.count();
+    }
 }

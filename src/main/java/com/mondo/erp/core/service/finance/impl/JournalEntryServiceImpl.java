@@ -135,4 +135,9 @@ public class JournalEntryServiceImpl implements JournalEntryService {
         Optional<JournalEntry> existingEntry = journalEntryRepository.findByReferenceAndCompany(reference, company);
         return !existingEntry.isPresent() || existingEntry.get().getId().equals(excludeId);
     }
+
+    @Override
+    public long countAll() {
+        return journalEntryRepository.count();
+    }
 }

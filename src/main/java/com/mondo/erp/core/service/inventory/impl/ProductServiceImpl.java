@@ -75,4 +75,9 @@ public class ProductServiceImpl implements ProductService {
         Optional<Product> existingProduct = productRepository.findByCodeAndCompany(code, company);
         return !existingProduct.isPresent() || existingProduct.get().getId().equals(excludeId);
     }
+
+    @Override
+    public long countAll() {
+        return productRepository.count();
+    }
 }

@@ -2,6 +2,20 @@
 <html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <th:block th:replace="fragments/head :: head(title='Dashboard')"></th:block>
+    <style>
+        .module-card {
+            transition: transform 0.3s ease;
+            height: 100%;
+        }
+        .module-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .module-icon {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+    </style>
 </head>
 <body>
 <div th:replace="fragments/navbar :: navbar(activeLink='dashboard')"></div>
@@ -9,27 +23,130 @@
 <div class="container mt-4">
     <div class="alert alert-success">
         <p>Welcome to Mondo ERP! You are logged in as: <span sec:authentication="name"></span></p>
+        <div sec:authorize="hasRole('ADMIN')" class="mt-2">
+            <a href="/mondo-erp/admindashboard" class="btn btn-primary">Go to Admin Dashboard</a>
+        </div>
     </div>
 
     <div class="row mt-4">
-        <!-- Dashboard Cards -->
-
-        <!-- Finance Module Card (visible only to users with finance permissions) -->
-        <div class="col-md-6 mb-4" sec:authorize="hasAuthority('FINANCE_READ')">
-            <div class="card h-100">
-                <div class="card-header">Finance</div>
-                <div class="card-body">
+        <!-- Finance Module Card -->
+        <div class="col-md-4 mb-4" sec:authorize="hasAuthority('FINANCE_READ')">
+            <div class="card module-card h-100">
+                <div class="card-body text-center">
+                    <div class="module-icon text-primary">
+                        <i class="bi bi-cash-stack"></i>
+                    </div>
                     <h5 class="card-title">Financial Management</h5>
-                    <p class="card-text">Access financial data, charts of accounts, and reports.</p>
-                    <a href="/mondo-erp/finance/accounts" class="btn btn-primary">Go to Finance</a>
+                    <p class="card-text">Access financial data, charts of accounts, journal entries, and reports.</p>
+                    <div class="d-grid">
+                        <a href="/mondo-erp/finance/accounts" class="btn btn-primary">Go to Finance</a>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent border-0">
+                    <div class="row text-center small">
+                        <div class="col">
+                            <a href="/mondo-erp/finance/accounts" class="text-decoration-none">Accounts</a>
+                        </div>
+                        <div class="col">
+                            <a href="/mondo-erp/finance/journal-entries" class="text-decoration-none">Journal Entries</a>
+                        </div>
+                        <div class="col">
+                            <a href="/mondo-erp/finance/reports" class="text-decoration-none">Reports</a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Other module cards can be added here -->
+        <!-- Inventory Module Card -->
+        <div class="col-md-4 mb-4" sec:authorize="hasAuthority('INVENTORY_READ')">
+            <div class="card module-card h-100">
+                <div class="card-body text-center">
+                    <div class="module-icon text-success">
+                        <i class="bi bi-box-seam"></i>
+                    </div>
+                    <h5 class="card-title">Inventory Management</h5>
+                    <p class="card-text">Manage products, track inventory, and process transactions.</p>
+                    <div class="d-grid">
+                        <a href="/mondo-erp/inventory/products" class="btn btn-success">Go to Inventory</a>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent border-0">
+                    <div class="row text-center small">
+                        <div class="col">
+                            <a href="/mondo-erp/inventory/products" class="text-decoration-none">Products</a>
+                        </div>
+                        <div class="col">
+                            <a href="/mondo-erp/inventory/transactions" class="text-decoration-none">Transactions</a>
+                        </div>
+                        <div class="col">
+                            <a href="/mondo-erp/inventory/reports" class="text-decoration-none">Reports</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Admin Module Card (Only visible to Admins) -->
+        <div class="col-md-4 mb-4" sec:authorize="hasRole('ADMIN')">
+            <div class="card module-card h-100">
+                <div class="card-body text-center">
+                    <div class="module-icon text-danger">
+                        <i class="bi bi-gear"></i>
+                    </div>
+                    <h5 class="card-title">Administration</h5>
+                    <p class="card-text">Manage users, roles, permissions, and company settings.</p>
+                    <div class="d-grid">
+                        <a href="/mondo-erp/admin/users" class="btn btn-danger">Go to Administration</a>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent border-0">
+                    <div class="row text-center small">
+                        <div class="col">
+                            <a href="/mondo-erp/admin/users" class="text-decoration-none">Users</a>
+                        </div>
+                        <div class="col">
+                            <a href="/mondo-erp/admin/roles" class="text-decoration-none">Roles</a>
+                        </div>
+                        <div class="col">
+                            <a href="/mondo-erp/admin/companies" class="text-decoration-none">Companies</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- User Profile Card (Visible to all) -->
+        <div class="col-md-4 mb-4">
+            <div class="card module-card h-100">
+                <div class="card-body text-center">
+                    <div class="module-icon text-info">
+                        <i class="bi bi-person-circle"></i>
+                    </div>
+                    <h5 class="card-title">User Profile</h5>
+                    <p class="card-text">View and update your profile information and preferences.</p>
+                    <div class="d-grid">
+                        <a href="/mondo-erp/user/profile" class="btn btn-info">My Profile</a>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent border-0">
+                    <div class="row text-center small">
+                        <div class="col">
+                            <a href="/mondo-erp/user/profile" class="text-decoration-none">View Profile</a>
+                        </div>
+                        <div class="col">
+                            <a href="/mondo-erp/user/change-password" class="text-decoration-none">Change Password</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
 <th:block th:replace="fragments/scripts :: scripts"></th:block>
+<script>
+    // Any additional JavaScript can go here
+</script>
 </body>
 </html>

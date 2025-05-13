@@ -29,4 +29,6 @@ public interface ProductService {
     boolean existsByCodeAndCompany(String code, Company company);
 
     boolean isCodeUnique(String code, Company company, Long excludeId);
+
+    long countAll();
 }

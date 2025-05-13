@@ -18,4 +18,6 @@ public interface CompanyService {
     void deleteById(Long id);
 
     boolean existsByTaxId(String taxId);
+
+    long countAll();
 }

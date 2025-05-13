@@ -15,9 +15,17 @@
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav me-auto">
                 <!-- Dashboard -->
-                <li class="nav-item">
-                    <a class="nav-link" th:classappend="${activeLink == 'dashboard' ? 'active' : ''}"
-                       href="/mondo-erp/dashboard">Dashboard</a>
+                <li class="nav-item dropdown" th:classappend="${activeLink == 'dashboard' ? 'active' : ''}">
+                    <a class="nav-link dropdown-toggle" href="#" id="dashboardDropdown" role="button"
+                       data-bs-toggle="dropdown" aria-expanded="false">
+                        Dashboard
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="dashboardDropdown">
+                        <li><a class="dropdown-item" href="/mondo-erp/dashboard">Main Dashboard</a></li>
+                        <li sec:authorize="hasRole('ADMIN')">
+                            <a class="dropdown-item" href="/mondo-erp/admindashboard">Admin Dashboard</a>
+                        </li>
+                    </ul>
                 </li>
 
                 <!-- Finance Module -->
@@ -118,9 +126,17 @@
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav me-auto">
-                <li class="nav-item">
-                    <a class="nav-link" th:classappend="${activeLink == 'dashboard' ? 'active' : ''}"
-                       href="/mondo-erp/dashboard">Dashboard</a>
+                <li class="nav-item dropdown" th:classappend="${activeLink == 'dashboard' ? 'active' : ''}">
+                    <a class="nav-link dropdown-toggle" href="#" id="dashboardDropdown" role="button"
+                       data-bs-toggle="dropdown" aria-expanded="false">
+                        Dashboard
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="dashboardDropdown">
+                        <li><a class="dropdown-item" href="/mondo-erp/dashboard">Main Dashboard</a></li>
+                        <li sec:authorize="hasRole('ADMIN')">
+                            <a class="dropdown-item" href="/mondo-erp/admindashboard">Admin Dashboard</a>
+                        </li>
+                    </ul>
                 </li>
 
                 <!-- Admin Module -->

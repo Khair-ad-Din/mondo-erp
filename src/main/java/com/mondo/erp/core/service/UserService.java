@@ -27,4 +27,6 @@ public interface UserService {
     boolean existsByEmail(String email);
 
     void updateLastAccess(String username);
+
+    long countAll();
 }

@@ -32,4 +32,6 @@ public interface JournalEntryService {
     String generateNextReference(Company company);
 
     boolean isReferenceUnique(String reference, Company company, Long excludeId);
+
+    long countAll();
 }
