@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supplier Statistics - Mondo ERP</title>
+    <th:block th:replace="fragments/head :: head"></th:block>
+</head>
+<body>
+
+<th:block th:replace="fragments/navbar :: navbar(${activeLink})"></th:block>
+
+<div class="container-fluid mt-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-0">
+                        <i class="bi bi-graph-up me-2"></i>Supplier Statistics
+                    </h1>
+                    <p class="text-muted">Analyze your supplier data and performance</p>
+                </div>
+                <div>
+                    <a th:href="@{/crm/suppliers}" class="btn btn-outline-secondary me-2">
+                        <i class="bi bi-arrow-left me-2"></i>Back to Suppliers
+                    </a>
+                    <button class="btn btn-success" onclick="window.print()">
+                        <i class="bi bi-printer me-2"></i>Print Report
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card bg-success text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title">Total Suppliers</h6>
+                            <h2 class="mb-0" th:text="${totalSuppliers}">0</h2>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="bi bi-building-fill fa-3x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card bg-primary text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title">Active Suppliers</h6>
+                            <h2 class="mb-0" th:text="${activeSuppliers}">0</h2>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="bi bi-check-circle-fill fa-3x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card bg-warning text-dark h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title">Inactive Suppliers</h6>
+                            <h2 class="mb-0" th:text="${inactiveSuppliers}">0</h2>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="bi bi-pause-circle-fill fa-3x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card bg-info text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title">Categories</h6>
+                            <h2 class="mb-0" th:text="${topCategories.size()}">0</h2>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="bi bi-tags-fill fa-3x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts and Analysis -->
+    <div class="row">
+        <!-- Category Distribution Chart -->
+        <div class="col-lg-8 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-pie-chart me-2"></i>Suppliers by Category
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div th:if="${categoryStats.empty}" class="text-center py-5">
+                        <i class="bi bi-pie-chart display-4 text-muted mb-3"></i>
+                        <p class="text-muted">No category data available</p>
+                        <small class="text-muted">Add categories to your suppliers to see distribution</small>
+                    </div>
+
+                    <div th:unless="${categoryStats.empty}">
+                        <canvas id="categoryChart" style="max-height: 400px;"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Categories -->
+        <div class="col-lg-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-trophy me-2"></i>Top Categories
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div th:if="${topCategories.empty}" class="text-center py-4">
+                        <i class="bi bi-tags text-muted display-4 mb-3"></i>
+                        <p class="text-muted">No categories found</p>
+                    </div>
+
+                    <div th:unless="${topCategories.empty}">
+                        <div th:each="category, iterStat : ${topCategories}" class="d-flex align-items-center mb-3">
+                            <div class="avatar-sm rounded-circle d-flex align-items-center justify-content-center me-3"
+                                 th:classappend="${iterStat.index == 0} ? 'bg-warning' : (${iterStat.index == 1} ? 'bg-secondary' : 'bg-success')">
+                                <span class="text-white fw-bold" th:text="${iterStat.index + 1}">1</span>
+                            </div>
+                            <div class="flex-grow-1">
+                                <h6 class="mb-0" th:text="${category}">Category Name</h6>
+                                <small class="text-muted">
+                                    <span th:each="stat : ${categoryStats}"
+                                          th:if="${stat[0] == category}"
+                                          th:text="${stat[1]} + ' suppliers'">0 suppliers</span>
+                                </small>
+                            </div>
+                            <a th:href="@{/crm/suppliers/category/{cat}(cat=${category})}"
+                               class="btn btn-sm btn-outline-secondary">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detailed Statistics Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-table me-2"></i>Category Breakdown
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div th:if="${categoryStats.empty}" class="text-center py-4">
+                        <i class="bi bi-table text-muted display-4 mb-3"></i>
+                        <p class="text-muted">No category statistics available</p>
+                        <a th:href="@{/crm/suppliers}" class="btn btn-success">
+                            <i class="bi bi-plus-circle me-2"></i>Add Suppliers with Categories
+                        </a>
+                    </div>
+
+                    <div th:unless="${categoryStats.empty}" class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                            <tr>
+                                <th>Category</th>
+                                <th>Number of Suppliers</th>
+                                <th>Percentage</th>
+                                <th>Actions</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="stat : ${categoryStats}">
+                                <td>
+                                    <span class="badge bg-success me-2" th:text="${stat[0]}">Category</span>
+                                </td>
+                                <td>
+                                    <strong th:text="${stat[1]}">0</strong>
+                                    <span class="text-muted">suppliers</span>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="progress me-2" style="width: 100px; height: 8px;">
+                                            <div class="progress-bar bg-success"
+                                                 th:style="'width: ' + ${stat[1] * 100.0 / totalSuppliers} + '%'"></div>
+                                        </div>
+                                        <span th:text="${#numbers.formatDecimal(stat[1] * 100.0 / totalSuppliers, 0, 1)} + '%'">0%</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <a th:href="@{/crm/suppliers/category/{cat}(cat=${stat[0]})}"
+                                       class="btn btn-sm btn-outline-success">
+                                        <i class="bi bi-eye me-1"></i>View Suppliers
+                                    </a>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">Quick Statistics</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <div class="text-center">
+                                <div class="h4 mb-0 text-success"
+                                     th:text="${totalSuppliers > 0 ? #numbers.formatDecimal(activeSuppliers * 100.0 / totalSuppliers, 0, 1) : 0} + '%'">0%</div>
+                                <small class="text-muted">Active Rate</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-center">
+                                <div class="h4 mb-0 text-info"
+                                     th:text="${activeSuppliers > 0 ? #numbers.formatDecimal(activeSuppliers * 1.0 / topCategories.size(), 0, 1) : 0}">0</div>
+                                <small class="text-muted">Avg per Category</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">Report Actions</h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-outline-success btn-sm" onclick="exportData()">
+                            <i class="bi bi-download me-2"></i>Export Data
+                        </button>
+                        <button class="btn btn-outline-info btn-sm" onclick="window.print()">
+                            <i class="bi bi-printer me-2"></i>Print Report
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<th:block th:replace="fragments/scripts :: scripts"></th:block>
+
+<!-- Chart.js for visualizations -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+
+<script th:if="${!categoryStats.empty}">
+    // Chart data from server
+    const chartData = [
+        /*[# th:each="stat : ${categoryStats}"]*/
+        {
+            label: /*[[${stat[0]}]]*/ 'Category',
+            data: /*[[${stat[1]}]]*/ 0
+        },
+        /*[/]*/
+    ];
+
+    // Create pie chart
+    const ctx = document.getElementById('categoryChart').getContext('2d');
+    const categoryChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: chartData.map(item => item.label),
+            datasets: [{
+                data: chartData.map(item => item.data),
+                backgroundColor: [
+                    '#198754', // success
+                    '#0d6efd', // primary
+                    '#fd7e14', // warning
+                    '#6f42c1', // purple
+                    '#dc3545', // danger
+                    '#20c997', // teal
+                    '#ffc107', // yellow
+                    '#6c757d'  // secondary
+                ],
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 20,
+                        usePointStyle: true
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = ((context.parsed * 100) / total).toFixed(1);
+                            return context.label + ': ' + context.parsed + ' (' + percentage + '%)';
+                        }
+                    }
+                }
+            }
+        }
+    });
+</script>
+
+<script>
+    function exportData() {
+        // Simple CSV export
+        const csvContent = "data:text/csv;charset=utf-8,"
+            + "Category,Count,Percentage\n"
+            + /*[[${categoryStats}]]*/ [].map(stat =>
+                `${stat[0]},${stat[1]},${(stat[1] * 100.0 / /*[[${totalSuppliers}]]*/ 1).toFixed(1)}%`
+            ).join('\n');
+
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "supplier_statistics.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    // Print styles
+    const printStyles = `
+        @media print {
+            .btn, .navbar { display: none !important; }
+            .card { border: 1px solid #dee2e6 !important; }
+            .container-fluid { margin: 0 !important; padding: 0 !important; }
+        }
+    `;
+
+    const styleSheet = document.createElement("style");
+    styleSheet.type = "text/css";
+    styleSheet.innerText = printStyles;
+    document.head.appendChild(styleSheet);
+</script>
+
+</body>
+</html>

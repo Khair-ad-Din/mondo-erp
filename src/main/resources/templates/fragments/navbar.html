@@ -70,6 +70,26 @@
                     </ul>
                 </li>
 
+                <!-- CRM Module -->
+                <li class="nav-item dropdown" sec:authorize="hasAuthority('CRM_READ')">
+                    <a class="nav-link dropdown-toggle"
+                       th:classappend="${activeLink.startsWith('crm') ? 'active' : ''}"
+                       href="#" id="crmDropdown" role="button"
+                       data-bs-toggle="dropdown" aria-expanded="false">
+                        CRM
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="crmDropdown">
+                        <li><a class="dropdown-item" th:classappend="${activeLink == 'crm-customers' ? 'active' : ''}"
+                               th:href="@{/crm/customers}">Customers</a></li>
+                        <li><a class="dropdown-item" th:classappend="${activeLink == 'crm-suppliers' ? 'active' : ''}"
+                               th:href="@{/crm/suppliers}">Suppliers</a></li>
+                        <li><a class="dropdown-item" th:classappend="${activeLink == 'crm-contacts' ? 'active' : ''}"
+                               th:href="@{/crm/contacts}">Contacts</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" th:classappend="${activeLink == 'crm-reports' ? 'active' : ''}"
+                               th:href="@{/crm/reports}">CRM Reports</a></li>
+                    </ul>
+                </li>
                 <!-- Admin Module -->
                 <li class="nav-item dropdown" sec:authorize="hasRole('ADMIN')">
                     <a class="nav-link dropdown-toggle"

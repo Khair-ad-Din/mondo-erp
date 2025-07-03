@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${isEdit ? 'Edit Supplier - ' + supplier.name : 'New Supplier'} + ' - Mondo ERP'">Supplier Form - Mondo ERP</title>
+    <th:block th:replace="fragments/head :: head"></th:block>
+</head>
+<body>
+
+<th:block th:replace="fragments/navbar :: navbar(${activeLink})"></th:block>
+
+<div class="container-fluid mt-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-0" th:text="${isEdit ? 'Edit Supplier' : 'New Supplier'}">Supplier Form</h1>
+                    <p class="text-muted" th:text="${isEdit ? 'Update supplier information' : 'Add a new supplier to your system'}">Form description</p>
+                </div>
+                <div>
+                    <a th:href="@{/crm/suppliers}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left me-2"></i>Back to Suppliers
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form -->
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-building-add me-2"></i>Supplier Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form th:action="@{/crm/suppliers}" th:object="${supplier}" method="post" novalidate>
+                        <input type="hidden" th:field="*{id}">
+                        <input type="hidden" th:field="*{company}">
+
+                        <!-- Basic Information -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-muted mb-3">Basic Information</h6>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="name" class="form-label">Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="name" th:field="*{name}"
+                                       th:classappend="${#fields.hasErrors('name')} ? 'is-invalid'" required>
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('name')}" th:errors="*{name}">Name error</div>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="taxId" class="form-label">Tax ID</label>
+                                <input type="text" class="form-control" id="taxId" th:field="*{taxId}"
+                                       th:classappend="${#fields.hasErrors('taxId')} ? 'is-invalid'">
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('taxId')}" th:errors="*{taxId}">Tax ID error</div>
+                                <div class="form-text">Unique identifier for tax purposes</div>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="supplierCategory" class="form-label">Category</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="supplierCategory" th:field="*{supplierCategory}"
+                                           th:classappend="${#fields.hasErrors('supplierCategory')} ? 'is-invalid'"
+                                           list="categoryOptions" placeholder="Select or enter new category">
+                                    <button type="button" class="btn btn-outline-secondary" id="addCategoryBtn" title="Add new category">
+                                        <i class="bi bi-plus"></i>
+                                    </button>
+                                </div>
+                                <datalist id="categoryOptions">
+                                    <option th:each="category : ${categories}" th:value="${category}"></option>
+                                </datalist>
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('supplierCategory')}" th:errors="*{supplierCategory}">Category error</div>
+                                <div class="form-text">Categorize your supplier for better organization</div>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="bankAccount" class="form-label">Bank Account</label>
+                                <input type="text" class="form-control" id="bankAccount" th:field="*{bankAccount}"
+                                       th:classappend="${#fields.hasErrors('bankAccount')} ? 'is-invalid'"
+                                       placeholder="Bank account number">
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('bankAccount')}" th:errors="*{bankAccount}">Bank account error</div>
+                                <div class="form-text">For payment processing and records</div>
+                            </div>
+                        </div>
+
+                        <!-- Contact Information -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-muted mb-3">Contact Information</h6>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="email" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="email" th:field="*{email}"
+                                       th:classappend="${#fields.hasErrors('email')} ? 'is-invalid'">
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('email')}" th:errors="*{email}">Email error</div>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="phone" class="form-label">Phone</label>
+                                <input type="tel" class="form-control" id="phone" th:field="*{phone}"
+                                       th:classappend="${#fields.hasErrors('phone')} ? 'is-invalid'">
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}">Phone error</div>
+                            </div>
+
+                            <div class="col-12 mb-3">
+                                <label for="address" class="form-label">Address</label>
+                                <textarea class="form-control" id="address" th:field="*{address}" rows="3"
+                                          th:classappend="${#fields.hasErrors('address')} ? 'is-invalid'"></textarea>
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('address')}" th:errors="*{address}">Address error</div>
+                            </div>
+                        </div>
+
+                        <!-- Business Information -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-muted mb-3">Business Information</h6>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="paymentTerms" class="form-label">Payment Terms</label>
+                                <select class="form-select" id="paymentTerms" th:field="*{paymentTerms}"
+                                        th:classappend="${#fields.hasErrors('paymentTerms')} ? 'is-invalid'">
+                                    <option value="">Select payment terms</option>
+                                    <option value="Net 15">Net 15 days</option>
+                                    <option value="Net 30">Net 30 days</option>
+                                    <option value="Net 45">Net 45 days</option>
+                                    <option value="Net 60">Net 60 days</option>
+                                    <option value="COD">Cash on Delivery</option>
+                                    <option value="Prepaid">Prepaid</option>
+                                    <option value="Due on Receipt">Due on Receipt</option>
+                                </select>
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('paymentTerms')}" th:errors="*{paymentTerms}">Payment terms error</div>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="creditLimit" class="form-label">Credit Limit</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">€</span>
+                                    <input type="number" class="form-control" id="creditLimit" th:field="*{creditLimit}"
+                                           step="0.01" min="0" th:classappend="${#fields.hasErrors('creditLimit')} ? 'is-invalid'">
+                                    <div class="invalid-feedback" th:if="${#fields.hasErrors('creditLimit')}" th:errors="*{creditLimit}">Credit limit error</div>
+                                </div>
+                                <div class="form-text">Maximum outstanding amount allowed</div>
+                            </div>
+                        </div>
+
+                        <!-- Status -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-muted mb-3">Status</h6>
+                            </div>
+
+                            <div class="col-12 mb-3">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="active" th:field="*{active}">
+                                    <label class="form-check-label" for="active">
+                                        Active Supplier
+                                    </label>
+                                    <div class="form-text">Inactive suppliers will not appear in active listings</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="d-flex justify-content-between">
+                                    <a th:href="@{/crm/suppliers}" class="btn btn-secondary">
+                                        <i class="bi bi-x-circle me-2"></i>Cancel
+                                    </a>
+                                    <button type="submit" class="btn btn-success">
+                                        <i th:class="${isEdit ? 'bi bi-check-circle me-2' : 'bi bi-plus-circle me-2'}"></i>
+                                        <span th:text="${isEdit ? 'Update Supplier' : 'Create Supplier'}">Save</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Category Modal -->
+<div class="modal fade" id="addCategoryModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add New Category</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="newCategoryName" class="form-label">Category Name</label>
+                    <input type="text" class="form-control" id="newCategoryName" placeholder="Enter category name">
+                    <div class="form-text">This category will be available for all suppliers</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success" id="saveCategoryBtn">Add Category</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<th:block th:replace="fragments/scripts :: scripts"></th:block>
+
+<script>
+    // Form validation
+    (function() {
+        'use strict';
+        window.addEventListener('load', function() {
+            var forms = document.getElementsByClassName('needs-validation');
+            var validation = Array.prototype.filter.call(forms, function(form) {
+                form.addEventListener('submit', function(event) {
+                    if (form.checkValidity() === false) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                    }
+                    form.classList.add('was-validated');
+                }, false);
+            });
+        }, false);
+    })();
+
+    // Auto-format credit limit
+    document.getElementById('creditLimit').addEventListener('input', function() {
+        let value = parseFloat(this.value);
+        if (!isNaN(value)) {
+            this.value = value.toFixed(2);
+        }
+    });
+
+    // Tax ID validation
+    document.getElementById('taxId').addEventListener('blur', function() {
+        if (this.value && this.value.length < 5) {
+            this.setCustomValidity('Tax ID should be at least 5 characters');
+            this.classList.add('is-invalid');
+        } else {
+            this.setCustomValidity('');
+            this.classList.remove('is-invalid');
+        }
+    });
+
+    // Bank account validation
+    document.getElementById('bankAccount').addEventListener('blur', function() {
+        if (this.value && this.value.length < 10) {
+            this.setCustomValidity('Bank account should be at least 10 characters');
+            this.classList.add('is-invalid');
+        } else {
+            this.setCustomValidity('');
+            this.classList.remove('is-invalid');
+        }
+    });
+
+    // Category management
+    document.getElementById('addCategoryBtn').addEventListener('click', function() {
+        new bootstrap.Modal(document.getElementById('addCategoryModal')).show();
+    });
+
+    document.getElementById('saveCategoryBtn').addEventListener('click', function() {
+        const newCategoryName = document.getElementById('newCategoryName').value.trim();
+
+        if (newCategoryName) {
+            // Add to datalist
+            const datalist = document.getElementById('categoryOptions');
+            const option = document.createElement('option');
+            option.value = newCategoryName;
+            datalist.appendChild(option);
+
+            // Set as selected value
+            document.getElementById('supplierCategory').value = newCategoryName;
+
+            // Clear modal input
+            document.getElementById('newCategoryName').value = '';
+
+            // Close modal
+            bootstrap.Modal.getInstance(document.getElementById('addCategoryModal')).hide();
+
+            // Show success message
+            showToast('Category added successfully', 'success');
+        }
+    });
+
+    // Auto-complete for categories
+    document.getElementById('supplierCategory').addEventListener('input', function() {
+        const input = this.value.toLowerCase();
+        const datalist = document.getElementById('categoryOptions');
+        const options = datalist.querySelectorAll('option');
+
+        // Simple autocomplete highlighting
+        options.forEach(option => {
+            if (option.value.toLowerCase().includes(input)) {
+                option.style.display = 'block';
+            } else {
+                option.style.display = 'none';
+            }
+        });
+    });
+
+    // Toast notification function
+    function showToast(message, type = 'info') {
+        // Create toast element
+        const toastHtml = `
+            <div class="toast align-items-center text-white bg-${type === 'success' ? 'success' : 'primary'} border-0" role="alert">
+                <div class="d-flex">
+                    <div class="toast-body">
+                        <i class="bi bi-check-circle me-2"></i>${message}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                </div>
+            </div>
+        `;
+
+        // Add to page
+        let toastContainer = document.querySelector('.toast-container');
+        if (!toastContainer) {
+            toastContainer = document.createElement('div');
+            toastContainer.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+            document.body.appendChild(toastContainer);
+        }
+
+        toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+
+        // Show toast
+        const toastElement = toastContainer.lastElementChild;
+        const toast = new bootstrap.Toast(toastElement);
+        toast.show();
+
+        // Remove after hide
+        toastElement.addEventListener('hidden.bs.toast', () => {
+            toastElement.remove();
+        });
+    }
+
+    // Enter key handler for category modal
+    document.getElementById('newCategoryName').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            document.getElementById('saveCategoryBtn').click();
+        }
+    });
+</script>
+
+</body>
+</html>

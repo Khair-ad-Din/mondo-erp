@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${isEdit ? 'Edit Contact - ' + contact.fullName : 'New Contact'} + ' - Mondo ERP'">Contact Form - Mondo ERP</title>
+    <th:block th:replace="fragments/head :: head"></th:block>
+</head>
+<body>
+
+<th:block th:replace="fragments/navbar :: navbar(${activeLink})"></th:block>
+
+<div class="container-fluid mt-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-0" th:text="${isEdit ? 'Edit Contact' : 'New Contact'}">Contact Form</h1>
+                    <p class="text-muted" th:text="${isEdit ? 'Update contact information' : 'Add a new contact to your system'}">Form description</p>
+                </div>
+                <div>
+                    <a th:href="@{/crm/contacts}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left me-2"></i>Back to Contacts
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form -->
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-person-plus me-2"></i>Contact Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form th:action="@{/crm/contacts}" th:object="${contact}" method="post" novalidate>
+                        <input type="hidden" th:field="*{id}">
+
+                        <!-- Parent Selection (Customer or Supplier) -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-muted mb-3">
+                                    <i class="bi bi-link-45deg me-2"></i>Contact Relationship
+                                </h6>
+                            </div>
+
+                            <div class="col-12 mb-3">
+                                <label class="form-label">This contact belongs to <span class="text-danger">*</span></label>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="parentType" id="customerType"
+                                                   value="customer" onchange="toggleParentType()"
+                                                   th:checked="${contact.customer != null}">
+                                            <label class="form-check-label" for="customerType">
+                                                <i class="bi bi-person me-1 text-primary"></i>Customer
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="parentType" id="supplierType"
+                                                   value="supplier" onchange="toggleParentType()"
+                                                   th:checked="${contact.supplier != null}">
+                                            <label class="form-check-label" for="supplierType">
+                                                <i class="bi bi-building me-1 text-success"></i>Supplier
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Customer Selection -->
+                            <div class="col-12 mb-3" id="customerSelection" style="display: none;">
+                                <label for="customerId" class="form-label">Select Customer <span class="text-danger">*</span></label>
+                                <select class="form-select" id="customerId" name="customerId">
+                                    <option value="">Choose customer...</option>
+                                    <option th:each="customer : ${customers}"
+                                            th:value="${customer.id}"
+                                            th:text="${customer.name}"
+                                            th:selected="${contact.customer != null && contact.customer.id == customer.id}">Customer</option>
+                                </select>
+                                <div class="form-text">Select the customer this contact belongs to</div>
+                            </div>
+
+                            <!-- Supplier Selection -->
+                            <div class="col-12 mb-3" id="supplierSelection" style="display: none;">
+                                <label for="supplierId" class="form-label">Select Supplier <span class="text-danger">*</span></label>
+                                <select class="form-select" id="supplierId" name="supplierId">
+                                    <option value="">Choose supplier...</option>
+                                    <option th:each="supplier : ${suppliers}"
+                                            th:value="${supplier.id}"
+                                            th:text="${supplier.name}"
+                                            th:selected="${contact.supplier != null && contact.supplier.id == supplier.id}">Supplier</option>
+                                </select>
+                                <div class="form-text">Select the supplier this contact belongs to</div>
+                            </div>
+                        </div>
+
+                        <!-- Personal Information -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-muted mb-3">
+                                    <i class="bi bi-person-badge me-2"></i>Personal Information
+                                </h6>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="firstName" class="form-label">First Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="firstName" th:field="*{firstName}"
+                                       th:classappend="${#fields.hasErrors('firstName')} ? 'is-invalid'" required>
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('firstName')}" th:errors="*{firstName}">First name error</div>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="lastName" class="form-label">Last Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="lastName" th:field="*{lastName}"
+                                       th:classappend="${#fields.hasErrors('lastName')} ? 'is-invalid'" required>
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('lastName')}" th:errors="*{lastName}">Last name error</div>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="email" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="email" th:field="*{email}"
+                                       th:classappend="${#fields.hasErrors('email')} ? 'is-invalid'">
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('email')}" th:errors="*{email}">Email error</div>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="phone" class="form-label">Phone</label>
+                                <input type="tel" class="form-control" id="phone" th:field="*{phone}"
+                                       th:classappend="${#fields.hasErrors('phone')} ? 'is-invalid'">
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}">Phone error</div>
+                            </div>
+                        </div>
+
+                        <!-- Professional Information -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-muted mb-3">
+                                    <i class="bi bi-briefcase me-2"></i>Professional Information
+                                </h6>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="position" class="form-label">Position/Title</label>
+                                <input type="text" class="form-control" id="position" th:field="*{position}"
+                                       th:classappend="${#fields.hasErrors('position')} ? 'is-invalid'"
+                                       placeholder="e.g., Sales Manager, Technical Lead">
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('position')}" th:errors="*{position}">Position error</div>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="contactType" class="form-label">Contact Type <span class="text-danger">*</span></label>
+                                <select class="form-select" id="contactType" th:field="*{contactType}"
+                                        th:classappend="${#fields.hasErrors('contactType')} ? 'is-invalid'" required>
+                                    <option value="">Select contact type</option>
+                                    <option th:each="type : ${contactTypes}"
+                                            th:value="${type}"
+                                            th:text="${type.displayName}">Type</option>
+                                </select>
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('contactType')}" th:errors="*{contactType}">Contact type error</div>
+                                <div class="form-text">
+                                    <small>
+                                        <strong>Commercial:</strong> Sales, purchasing, business decisions<br>
+                                        <strong>Technical:</strong> Implementation, support, technical issues<br>
+                                        <strong>Administrative:</strong> Billing, contracts, general admin
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Contact Type Specific Help -->
+                        <div class="row mb-4" id="contactTypeHelp" style="display: none;">
+                            <div class="col-12">
+                                <div class="alert alert-light border">
+                                    <div id="helpContent">
+                                        <!-- Dynamic content based on selected contact type -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="d-flex justify-content-between">
+                                    <a th:href="@{/crm/contacts}" class="btn btn-secondary">
+                                        <i class="bi bi-x-circle me-2"></i>Cancel
+                                    </a>
+                                    <button type="submit" class="btn btn-info">
+                                        <i th:class="${isEdit ? 'bi bi-check-circle me-2' : 'bi bi-plus-circle me-2'}"></i>
+                                        <span th:text="${isEdit ? 'Update Contact' : 'Create Contact'}">Save</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar with helpful information -->
+        <div class="col-lg-4 mt-4 mt-lg-0">
+            <!-- Quick Actions -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">
+                        <i class="bi bi-lightbulb me-2"></i>Quick Tips
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="small">
+                        <h6 class="text-muted">Contact Types:</h6>
+                        <ul class="list-unstyled mb-3">
+                            <li><span class="badge bg-success me-2">Commercial</span> Sales, purchasing decisions</li>
+                            <li><span class="badge bg-primary me-2">Technical</span> Implementation, support</li>
+                            <li><span class="badge bg-warning me-2">Admin</span> Billing, contracts</li>
+                        </ul>
+
+                        <h6 class="text-muted">Best Practices:</h6>
+                        <ul class="small text-muted">
+                            <li>Always verify email addresses</li>
+                            <li>Include direct phone numbers when possible</li>
+                            <li>Update contact information regularly</li>
+                            <li>Assign appropriate contact types for better organization</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Contacts -->
+            <div th:if="${!isEdit}" class="card">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">
+                        <i class="bi bi-clock-history me-2"></i>Recently Added
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted small mb-2">Recent contacts will appear here</p>
+                    <div class="text-center">
+                        <i class="bi bi-person-plus text-muted"></i>
+                        <small class="text-muted d-block">No recent contacts</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<th:block th:replace="fragments/scripts :: scripts"></th:block>
+
+<script>
+    // Initialize form based on existing data
+    document.addEventListener('DOMContentLoaded', function() {
+        // Check if we're editing and have existing parent data
+        const hasCustomer = /*[[${contact.customer != null}]]*/ false;
+        const hasSupplier = /*[[${contact.supplier != null}]]*/ false;
+
+        if (hasCustomer) {
+            document.getElementById('customerType').checked = true;
+            toggleParentType();
+        } else if (hasSupplier) {
+            document.getElementById('supplierType').checked = true;
+            toggleParentType();
+        }
+
+        // Initialize contact type help
+        updateContactTypeHelp();
+    });
+
+    function toggleParentType() {
+        const customerType = document.getElementById('customerType').checked;
+        const supplierType = document.getElementById('supplierType').checked;
+
+        const customerDiv = document.getElementById('customerSelection');
+        const supplierDiv = document.getElementById('supplierSelection');
+
+        // Show/hide appropriate selection
+        if (customerType) {
+            customerDiv.style.display = 'block';
+            supplierDiv.style.display = 'none';
+            // Clear supplier selection
+            document.getElementById('supplierId').value = '';
+            // Make customer required
+            document.getElementById('customerId').required = true;
+            document.getElementById('supplierId').required = false;
+        } else if (supplierType) {
+            customerDiv.style.display = 'none';
+            supplierDiv.style.display = 'block';
+            // Clear customer selection
+            document.getElementById('customerId').value = '';
+            // Make supplier required
+            document.getElementById('customerId').required = false;
+            document.getElementById('supplierId').required = true;
+        } else {
+            customerDiv.style.display = 'none';
+            supplierDiv.style.display = 'none';
+            document.getElementById('customerId').required = false;
+            document.getElementById('supplierId').required = false;
+        }
+    }
+
+    function updateContactTypeHelp() {
+        const contactType = document.getElementById('contactType').value;
+        const helpDiv = document.getElementById('contactTypeHelp');
+        const helpContent = document.getElementById('helpContent');
+
+        if (!contactType) {
+            helpDiv.style.display = 'none';
+            return;
+        }
+
+        let content = '';
+        let icon = '';
+        let color = '';
+
+        switch(contactType) {
+            case 'COMMERCIAL':
+                icon = 'bi-briefcase';
+                color = 'text-success';
+                content = `
+                    <h6 class="${color}"><i class="bi ${icon} me-2"></i>Commercial Contact</h6>
+                    <p class="mb-2">This contact handles business and sales activities:</p>
+                    <ul class="small mb-0">
+                        <li>Sales negotiations and quotes</li>
+                        <li>Purchase orders and contracts</li>
+                        <li>Business relationship management</li>
+                        <li>Account management and growth</li>
+                    </ul>
+                `;
+                break;
+            case 'TECHNICAL':
+                icon = 'bi-gear';
+                color = 'text-primary';
+                content = `
+                    <h6 class="${color}"><i class="bi ${icon} me-2"></i>Technical Contact</h6>
+                    <p class="mb-2">This contact handles technical and implementation matters:</p>
+                    <ul class="small mb-0">
+                        <li>Product implementation and setup</li>
+                        <li>Technical support and troubleshooting</li>
+                        <li>System integration and configuration</li>
+                        <li>Technical specifications and requirements</li>
+                    </ul>
+                `;
+                break;
+            case 'ADMIN':
+                icon = 'bi-person-gear';
+                color = 'text-warning';
+                content = `
+                    <h6 class="${color}"><i class="bi ${icon} me-2"></i>Administrative Contact</h6>
+                    <p class="mb-2">This contact handles administrative and operational tasks:</p>
+                    <ul class="small mb-0">
+                        <li>Billing and payment processing</li>
+                        <li>Contract management and renewals</li>
+                        <li>General administrative inquiries</li>
+                        <li>Documentation and compliance</li>
+                    </ul>
+                `;
+                break;
+        }
+
+        if (content) {
+            helpContent.innerHTML = content;
+            helpDiv.style.display = 'block';
+        } else {
+            helpDiv.style.display = 'none';
+        }
+    }
+
+    // Add event listeners
+    document.getElementById('contactType').addEventListener('change', updateContactTypeHelp);
+
+    // Form validation
+    (function() {
+        'use strict';
+        window.addEventListener('load', function() {
+            var forms = document.getElementsByClassName('needs-validation');
+            var validation = Array.prototype.filter.call(forms, function(form) {
+                form.addEventListener('submit', function(event) {
+                    // Custom validation for parent selection
+                    const customerType = document.getElementById('customerType').checked;
+                    const supplierType = document.getElementById('supplierType').checked;
+                    const customerId = document.getElementById('customerId').value;
+                    const supplierId = document.getElementById('supplierId').value;
+
+                    let isValid = true;
+
+                    // Check that either customer or supplier is selected
+                    if (!customerType && !supplierType) {
+                        alert('Please select whether this contact belongs to a Customer or Supplier');
+                        isValid = false;
+                    }
+
+                    // Check that appropriate parent is selected
+                    if (customerType && !customerId) {
+                        alert('Please select a Customer');
+                        isValid = false;
+                    }
+
+                    if (supplierType && !supplierId) {
+                        alert('Please select a Supplier');
+                        isValid = false;
+                    }
+
+                    if (!isValid || form.checkValidity() === false) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                    }
+                    form.classList.add('was-validated');
+                }, false);
+            });
+        }, false);
+    })();
+
+    // Email validation enhancement
+    document.getElementById('email').addEventListener('blur', function() {
+        if (this.value && !this.value.includes('@')) {
+            this.setCustomValidity('Please enter a valid email address');
+            this.classList.add('is-invalid');
+        } else {
+            this.setCustomValidity('');
+            this.classList.remove('is-invalid');
+        }
+    });
+
+    // Auto-capitalize names
+    document.getElementById('firstName').addEventListener('blur', function() {
+        if (this.value) {
+            this.value = this.value.charAt(0).toUpperCase() + this.value.slice(1).toLowerCase();
+        }
+    });
+
+    document.getElementById('lastName').addEventListener('blur', function() {
+        if (this.value) {
+            this.value = this.value.charAt(0).toUpperCase() + this.value.slice(1).toLowerCase();
+        }
+    });
+</script>
+
+</body>
+</html>

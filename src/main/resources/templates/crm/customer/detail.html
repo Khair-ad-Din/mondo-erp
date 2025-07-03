@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="'Customer: ' + ${customer.name} + ' - Mondo ERP'">Customer Detail - Mondo ERP</title>
+    <th:block th:replace="fragments/head :: head"></th:block>
+</head>
+<body>
+
+<th:block th:replace="fragments/navbar :: navbar(${activeLink})"></th:block>
+
+<div class="container-fluid mt-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col">
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center">
+                    <div class="avatar-lg bg-primary rounded-circle d-flex align-items-center justify-content-center me-3">
+                        <span class="text-white h4 mb-0" th:text="${customer.name.substring(0,1).toUpperCase()}">C</span>
+                    </div>
+                    <div>
+                        <h1 class="h3 mb-0" th:text="${customer.name}">Customer Name</h1>
+                        <p class="text-muted mb-0">
+                            <span th:if="${customer.taxId}" th:text="'Tax ID: ' + ${customer.taxId}">Tax ID</span>
+                            <span th:if="${customer.active}" class="badge bg-success ms-2">Active</span>
+                            <span th:unless="${customer.active}" class="badge bg-secondary ms-2">Inactive</span>
+                        </p>
+                    </div>
+                </div>
+                <div class="btn-group" role="group">
+                    <a th:href="@{/crm/customers}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left me-2"></i>Back to List
+                    </a>
+                    <a th:href="@{/crm/customers/{id}/edit(id=${customer.id})}"
+                       class="btn btn-primary" sec:authorize="hasAuthority('CRM_UPDATE')">
+                        <i class="bi bi-pencil me-2"></i>Edit
+                    </a>
+                    <div class="btn-group" role="group" sec:authorize="hasAuthority('CRM_UPDATE')">
+                        <button type="button" class="btn btn-outline-secondary dropdown-toggle"
+                                data-bs-toggle="dropdown">
+                            <i class="bi bi-three-dots"></i>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <form th:action="@{/crm/customers/{id}/toggle-active(id=${customer.id})}"
+                                      method="post" class="d-inline">
+                                    <button type="submit" class="dropdown-item">
+                                        <i th:class="${customer.active ? 'bi bi-pause-circle me-2' : 'bi bi-play-circle me-2'}"></i>
+                                        <span th:text="${customer.active ? 'Deactivate' : 'Activate'}">Toggle</span>
+                                    </button>
+                                </form>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li sec:authorize="hasAuthority('CRM_DELETE')">
+                                <button type="button" class="dropdown-item text-danger"
+                                        onclick="confirmDelete()"
+                                        th:data-url="@{/crm/customers/{id}/delete(id=${customer.id})}"
+                                        th:data-name="${customer.name}">
+                                    <i class="bi bi-trash me-2"></i>Delete
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Flash Messages -->
+    <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle me-2"></i>
+        <span th:text="${successMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle me-2"></i>
+        <span th:text="${errorMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <!-- Main Content -->
+    <div class="row">
+        <!-- Customer Information -->
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-person me-2"></i>Customer Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Basic Information</h6>
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td class="fw-semibold">Name:</td>
+                                    <td th:text="${customer.name}">Customer Name</td>
+                                </tr>
+                                <tr th:if="${customer.taxId}">
+                                    <td class="fw-semibold">Tax ID:</td>
+                                    <td th:text="${customer.taxId}" class="font-monospace">TAX123</td>
+                                </tr>
+                                <tr th:if="${customer.email}">
+                                    <td class="fw-semibold">Email:</td>
+                                    <td>
+                                        <a th:href="'mailto:' + ${customer.email}" th:text="${customer.email}">email@example.com</a>
+                                    </td>
+                                </tr>
+                                <tr th:if="${customer.phone}">
+                                    <td class="fw-semibold">Phone:</td>
+                                    <td>
+                                        <a th:href="'tel:' + ${customer.phone}" th:text="${customer.phone}">+1234567890</a>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Business Information</h6>
+                            <table class="table table-borderless">
+                                <tr th:if="${customer.paymentTerms}">
+                                    <td class="fw-semibold">Payment Terms:</td>
+                                    <td th:text="${customer.paymentTerms}">Net 30</td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-semibold">Credit Limit:</td>
+                                    <td>
+                                        <span th:text="'€' + ${#numbers.formatDecimal(customer.creditLimit, 0, 2)}">€0.00</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-semibold">Status:</td>
+                                    <td>
+                                        <span th:if="${customer.active}" class="badge bg-success">Active</span>
+                                        <span th:unless="${customer.active}" class="badge bg-secondary">Inactive</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-semibold">Created:</td>
+                                    <td th:text="${#temporals.format(customer.createdAt, 'dd/MM/yyyy HH:mm')}">01/01/2024 10:00</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div th:if="${customer.address}" class="row mt-3">
+                        <div class="col-12">
+                            <h6 class="text-muted">Address</h6>
+                            <p class="mb-0" th:text="${customer.address}">Customer address</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contacts Section -->
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-people me-2"></i>Contacts
+                        <span class="badge bg-primary ms-2" th:text="${customer.contacts.size()}">0</span>
+                    </h5>
+                    <a th:href="@{/crm/contacts/new(customerId=${customer.id})}"
+                       class="btn btn-sm btn-outline-primary" sec:authorize="hasAuthority('CRM_CREATE')">
+                        <i class="bi bi-plus-circle me-1"></i>Add Contact
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div th:if="${customer.contacts.empty}" class="text-center py-4">
+                        <i class="bi bi-person-plus display-4 text-muted mb-3 d-block"></i>
+                        <p class="text-muted mb-2">No contacts added yet</p>
+                        <a th:href="@{/crm/contacts/new(customerId=${customer.id})}"
+                           class="btn btn-outline-primary btn-sm" sec:authorize="hasAuthority('CRM_CREATE')">
+                            <i class="bi bi-plus-circle me-1"></i>Add First Contact
+                        </a>
+                    </div>
+
+                    <div th:unless="${customer.contacts.empty}">
+                        <div class="row">
+                            <div th:each="contact : ${customer.contacts}" class="col-md-6 mb-3">
+                                <div class="card border-light">
+                                    <div class="card-body p-3">
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-sm bg-info rounded-circle d-flex align-items-center justify-content-center me-3">
+                                                <i class="bi bi-person text-white"></i>
+                                            </div>
+                                            <div class="flex-grow-1">
+                                                <h6 class="mb-1">
+                                                    <a th:href="@{/crm/contacts/{id}(id=${contact.id})}"
+                                                       class="text-decoration-none" th:text="${contact.fullName}">Contact Name</a>
+                                                </h6>
+                                                <p class="text-muted small mb-1" th:if="${contact.position}" th:text="${contact.position}">Position</p>
+                                                <div class="d-flex gap-2">
+                                                    <span class="badge bg-light text-dark" th:text="${contact.contactType.displayName}">Type</span>
+                                                    <a th:if="${contact.email}" th:href="'mailto:' + ${contact.email}"
+                                                       class="text-muted small text-decoration-none">
+                                                        <i class="bi bi-envelope"></i>
+                                                    </a>
+                                                    <a th:if="${contact.phone}" th:href="'tel:' + ${contact.phone}"
+                                                       class="text-muted small text-decoration-none">
+                                                        <i class="bi bi-telephone"></i>
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="text-center mt-3">
+                            <a th:href="@{/crm/contacts/customer/{id}(id=${customer.id})}"
+                               class="btn btn-outline-secondary btn-sm">
+                                <i class="bi bi-eye me-1"></i>View All Contacts
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Quick Actions -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">Quick Actions</h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a th:href="@{/crm/contacts/new(customerId=${customer.id})}"
+                           class="btn btn-outline-primary btn-sm" sec:authorize="hasAuthority('CRM_CREATE')">
+                            <i class="bi bi-person-plus me-2"></i>Add Contact
+                        </a>
+                        <a th:href="@{/crm/customers/{id}/edit(id=${customer.id})}"
+                           class="btn btn-outline-secondary btn-sm" sec:authorize="hasAuthority('CRM_UPDATE')">
+                            <i class="bi bi-pencil me-2"></i>Edit Customer
+                        </a>
+                        <button type="button" class="btn btn-outline-info btn-sm">
+                            <i class="bi bi-file-earmark-text me-2"></i>Generate Report
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Statistics -->
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">Statistics</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <div class="text-center">
+                                <div class="h4 mb-0 text-primary" th:text="${customer.contacts.size()}">0</div>
+                                <small class="text-muted">Contacts</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-center">
+                                <div class="h4 mb-0 text-success">€0</div>
+                                <small class="text-muted">Total Sales</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-center">
+                                <div class="h4 mb-0 text-info">0</div>
+                                <small class="text-muted">Orders</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-center">
+                                <div class="h4 mb-0 text-warning">€0</div>
+                                <small class="text-muted">Outstanding</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete customer <strong th:text="${customer.name}">Customer Name</strong>?</p>
+                <p class="text-muted small">This action cannot be undone and will also delete all associated contacts.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form id="deleteForm" method="post" class="d-inline">
+                    <button type="submit" class="btn btn-danger">Delete Customer</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<th:block th:replace="fragments/scripts :: scripts"></th:block>
+
+<script>
+    function confirmDelete() {
+        const deleteForm = document.getElementById('deleteForm');
+        const deleteButton = document.querySelector('[onclick="confirmDelete()"]');
+        const url = deleteButton.getAttribute('data-url');
+
+        deleteForm.action = url;
+        new bootstrap.Modal(document.getElementById('deleteModal')).show();
+    }
+</script>
+
+</body>
+</html>
