@@ -41,64 +41,88 @@
                     <form th:action="@{/crm/contacts}" th:object="${contact}" method="post" novalidate>
                         <input type="hidden" th:field="*{id}">
 
-                        <!-- Parent Selection (Customer or Supplier) -->
+                        <!-- Parent Assignment -->
                         <div class="row mb-4">
                             <div class="col-12">
                                 <h6 class="text-muted mb-3">
-                                    <i class="bi bi-link-45deg me-2"></i>Contact Relationship
+                                    <i class="bi bi-building me-2"></i>Company Assignment
                                 </h6>
                             </div>
 
-                            <div class="col-12 mb-3">
-                                <label class="form-label">This contact belongs to <span class="text-danger">*</span></label>
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="radio" name="parentType" id="customerType"
-                                                   value="customer" onchange="toggleParentType()"
-                                                   th:checked="${contact.customer != null}">
-                                            <label class="form-check-label" for="customerType">
-                                                <i class="bi bi-person me-1 text-primary"></i>Customer
-                                            </label>
-                                        </div>
+                            <!-- Si viene de un customer/supplier específico, mostrarlo bloqueado -->
+                            <div th:if="${contact.customer != null}" class="col-12 mb-3">
+                                <label class="form-label">Assigned to Customer</label>
+                                <div class="alert alert-success d-flex align-items-center">
+                                    <i class="bi bi-building me-2"></i>
+                                    <div>
+                                        <strong th:text="${contact.customer.name}">Customer Name</strong>
+                                        <br><small class="text-muted">This contact will be assigned to this customer</small>
                                     </div>
-                                    <div class="col-md-6">
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="radio" name="parentType" id="supplierType"
-                                                   value="supplier" onchange="toggleParentType()"
-                                                   th:checked="${contact.supplier != null}">
-                                            <label class="form-check-label" for="supplierType">
-                                                <i class="bi bi-building me-1 text-success"></i>Supplier
-                                            </label>
+                                </div>
+                                <!-- Hidden field para mantener la asignación -->
+                                <input type="hidden" name="customerId" th:value="${contact.customer.id}">
+                            </div>
+
+                            <div th:if="${contact.supplier != null}" class="col-12 mb-3">
+                                <label class="form-label">Assigned to Supplier</label>
+                                <div class="alert alert-warning d-flex align-items-center">
+                                    <i class="bi bi-truck me-2"></i>
+                                    <div>
+                                        <strong th:text="${contact.supplier.name}">Supplier Name</strong>
+                                        <br><small class="text-muted">This contact will be assigned to this supplier</small>
+                                    </div>
+                                </div>
+                                <!-- Hidden field para mantener la asignación -->
+                                <input type="hidden" name="supplierId" th:value="${contact.supplier.id}">
+                            </div>
+
+                            <!-- Solo mostrar la selección manual si NO viene de customer/supplier específico -->
+                            <div th:if="${contact.customer == null && contact.supplier == null}" class="col-12">
+                                <div class="row mb-3">
+                                    <div class="col-12">
+                                        <label class="form-label">Contact belongs to <span class="text-danger">*</span></label>
+                                        <div class="d-flex gap-3">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="parentType"
+                                                       id="customerType" value="customer" onchange="toggleParentSelection()">
+                                                <label class="form-check-label" for="customerType">
+                                                    <i class="bi bi-building me-1"></i>Customer
+                                                </label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="parentType"
+                                                       id="supplierType" value="supplier" onchange="toggleParentSelection()">
+                                                <label class="form-check-label" for="supplierType">
+                                                    <i class="bi bi-truck me-1"></i>Supplier
+                                                </label>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            <!-- Customer Selection -->
-                            <div class="col-12 mb-3" id="customerSelection" style="display: none;">
-                                <label for="customerId" class="form-label">Select Customer <span class="text-danger">*</span></label>
-                                <select class="form-select" id="customerId" name="customerId">
-                                    <option value="">Choose customer...</option>
-                                    <option th:each="customer : ${customers}"
-                                            th:value="${customer.id}"
-                                            th:text="${customer.name}"
-                                            th:selected="${contact.customer != null && contact.customer.id == customer.id}">Customer</option>
-                                </select>
-                                <div class="form-text">Select the customer this contact belongs to</div>
-                            </div>
+                                <!-- Customer Selection -->
+                                <div class="col-12 mb-3" id="customerSelection" style="display: none;">
+                                    <label for="customerId" class="form-label">Select Customer <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="customerId" name="customerId">
+                                        <option value="">Choose customer...</option>
+                                        <option th:each="customer : ${customers}"
+                                                th:value="${customer.id}"
+                                                th:text="${customer.name}">Customer</option>
+                                    </select>
+                                    <div class="form-text">Select the customer this contact belongs to</div>
+                                </div>
 
-                            <!-- Supplier Selection -->
-                            <div class="col-12 mb-3" id="supplierSelection" style="display: none;">
-                                <label for="supplierId" class="form-label">Select Supplier <span class="text-danger">*</span></label>
-                                <select class="form-select" id="supplierId" name="supplierId">
-                                    <option value="">Choose supplier...</option>
-                                    <option th:each="supplier : ${suppliers}"
-                                            th:value="${supplier.id}"
-                                            th:text="${supplier.name}"
-                                            th:selected="${contact.supplier != null && contact.supplier.id == supplier.id}">Supplier</option>
-                                </select>
-                                <div class="form-text">Select the supplier this contact belongs to</div>
+                                <!-- Supplier Selection -->
+                                <div class="col-12 mb-3" id="supplierSelection" style="display: none;">
+                                    <label for="supplierId" class="form-label">Select Supplier <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="supplierId" name="supplierId">
+                                        <option value="">Choose supplier...</option>
+                                        <option th:each="supplier : ${suppliers}"
+                                                th:value="${supplier.id}"
+                                                th:text="${supplier.name}">Supplier</option>
+                                    </select>
+                                    <div class="form-text">Select the supplier this contact belongs to</div>
+                                </div>
                             </div>
                         </div>
 

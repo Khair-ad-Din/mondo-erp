@@ -57,13 +57,21 @@ public class SupplierController {
             Model model,
             @AuthenticationPrincipal UserDetails userDetails) {
 
-        logger.debug("Displaying supplier list for user: {}", userDetails.getUsername());
+        logger.debug("Displaying supplier list for user: {} with filters - active: {}, category: {}, search: {}",
+                userDetails.getUsername(), active, category, search);
 
         User user = getUserFromPrincipal(userDetails);
         Company company = user.getCompany();
 
+        // Limpiar parámetros vacíos (convertir strings vacíos a null)
+        String cleanSearch = (search != null && search.trim().isEmpty()) ? null : search;
+        String cleanCategory = (category != null && category.trim().isEmpty()) ? null : category;
+
         // Obtener proveedores con filtros
-        Page<Supplier> suppliers = supplierService.findWithFilters(company, active, category, search, pageable);
+        Page<Supplier> suppliers = supplierService.findWithFilters(company, active, cleanCategory, cleanSearch, pageable);
+
+        // Log para debugging
+        logger.debug("Found {} suppliers with current filters", suppliers.getTotalElements());
 
         // Obtener todas las categorías para el filtro
         List<String> categories = supplierService.findAllCategoriesByCompany(company);
@@ -83,8 +91,8 @@ public class SupplierController {
         model.addAttribute("activeSuppliers", activeSuppliers);
         model.addAttribute("inactiveSuppliers", totalSuppliers - activeSuppliers);
         model.addAttribute("currentActive", active);
-        model.addAttribute("currentCategory", category);
-        model.addAttribute("currentSearch", search);
+        model.addAttribute("currentCategory", cleanCategory);
+        model.addAttribute("currentSearch", cleanSearch);
         model.addAttribute("activeLink", "crm-suppliers");
 
         return "crm/supplier/list";

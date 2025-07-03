@@ -1,10 +1,250 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Primary Contacts - Mondo ERP</title>
+    <th:block th:replace="fragments/head :: head"></th:block>
 </head>
 <body>
+
+<th:block th:replace="fragments/navbar :: navbar(${activeLink})"></th:block>
+
+<div class="container-fluid mt-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col">
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center">
+                    <div class="avatar-lg bg-success rounded-circle d-flex align-items-center justify-content-center me-3">
+                        <i class="bi bi-star text-white h4 mb-0"></i>
+                    </div>
+                    <div>
+                        <h1 class="h3 mb-0">Primary Contacts</h1>
+                        <p class="text-muted mb-0">
+                            <span class="badge bg-success me-2">Commercial Contacts</span>
+                            <span th:text="'Total primary contacts: ' + ${primaryContacts.size()}">Total primary contacts: 0</span>
+                        </p>
+                    </div>
+                </div>
+                <div class="btn-group" role="group">
+                    <a th:href="@{/crm/contacts}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left me-2"></i>Back to All Contacts
+                    </a>
+                    <a th:href="@{/crm/contacts/new}" class="btn btn-success" sec:authorize="hasAuthority('CRM_CREATE')">
+                        <i class="bi bi-person-plus me-2"></i>Add Contact
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Info Alert -->
+    <div class="row mb-4">
+        <div class="col">
+            <div class="alert alert-info d-flex align-items-center">
+                <i class="bi bi-info-circle me-2"></i>
+                <div>
+                    <strong>About Primary Contacts:</strong> These are all Commercial contacts in your system.
+                    Commercial contacts are typically the main business representatives for customers and suppliers.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Primary Contacts Grid -->
+    <div class="row">
+        <div class="col">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-people me-2"></i>Primary Contacts Overview
+                    </h5>
+                    <span class="badge bg-success" th:text="${primaryContacts.size()}">0</span>
+                </div>
+                <div class="card-body">
+                    <!-- Empty State -->
+                    <div th:if="${primaryContacts.isEmpty()}" class="text-center py-5">
+                        <i class="bi bi-star display-1 text-muted mb-3"></i>
+                        <h4 class="text-muted">No Primary Contacts Found</h4>
+                        <p class="text-muted mb-4">You don't have any Commercial contacts yet. These are the main business contacts for your customers and suppliers.</p>
+                        <a th:href="@{/crm/contacts/new}" class="btn btn-success" sec:authorize="hasAuthority('CRM_CREATE')">
+                            <i class="bi bi-person-plus me-2"></i>Add First Primary Contact
+                        </a>
+                    </div>
+
+                    <!-- Contacts Grid -->
+                    <div th:if="${!primaryContacts.isEmpty()}" class="row">
+                        <div th:each="contact : ${primaryContacts}" class="col-md-6 col-lg-4 mb-4">
+                            <div class="card h-100 border-0 shadow-sm">
+                                <div class="card-body">
+                                    <!-- Contact Header -->
+                                    <div class="d-flex align-items-center mb-3">
+                                        <div class="avatar-md bg-success rounded-circle d-flex align-items-center justify-content-center me-3">
+                                            <span class="text-white fw-bold" th:text="${contact.firstName.substring(0,1).toUpperCase()}">J</span>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <h6 class="mb-0">
+                                                <a th:href="@{/crm/contacts/{id}(id=${contact.id})}"
+                                                   class="text-decoration-none" th:text="${contact.fullName}">John Doe</a>
+                                            </h6>
+                                            <small class="text-muted" th:text="${contact.position ?: 'No position specified'}">Sales Manager</small>
+                                        </div>
+                                        <span class="badge bg-success">Commercial</span>
+                                    </div>
+
+                                    <!-- Parent Info -->
+                                    <div class="mb-3">
+                                        <div th:if="${contact.isCustomerContact()}" class="d-flex align-items-center">
+                                            <div class="avatar-sm bg-light rounded-circle d-flex align-items-center justify-content-center me-2">
+                                                <i class="bi bi-building text-success"></i>
+                                            </div>
+                                            <div>
+                                                <small class="text-muted d-block">Customer</small>
+                                                <a th:href="@{/crm/customers/{id}(id=${contact.customer.id})}"
+                                                   class="text-decoration-none fw-medium small" th:text="${contact.customer.name}">Customer Name</a>
+                                            </div>
+                                        </div>
+
+                                        <div th:if="${contact.isSupplierContact()}" class="d-flex align-items-center">
+                                            <div class="avatar-sm bg-light rounded-circle d-flex align-items-center justify-content-center me-2">
+                                                <i class="bi bi-truck text-warning"></i>
+                                            </div>
+                                            <div>
+                                                <small class="text-muted d-block">Supplier</small>
+                                                <a th:href="@{/crm/suppliers/{id}(id=${contact.supplier.id})}"
+                                                   class="text-decoration-none fw-medium small" th:text="${contact.supplier.name}">Supplier Name</a>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Contact Information -->
+                                    <div class="mb-3">
+                                        <div th:if="${contact.email}" class="d-flex align-items-center mb-1">
+                                            <i class="bi bi-envelope text-muted me-2 small"></i>
+                                            <a th:href="'mailto:' + ${contact.email}" th:text="${contact.email}" class="text-decoration-none small text-truncate">email@example.com</a>
+                                        </div>
+                                        <div th:if="${contact.phone}" class="d-flex align-items-center mb-1">
+                                            <i class="bi bi-telephone text-muted me-2 small"></i>
+                                            <a th:href="'tel:' + ${contact.phone}" th:text="${contact.phone}" class="text-decoration-none small">+1234567890</a>
+                                        </div>
+                                        <div th:if="${!contact.email && !contact.phone}" class="text-muted small">
+                                            <i class="bi bi-exclamation-triangle me-1"></i>No contact information
+                                        </div>
+                                    </div>
+
+                                    <!-- Actions -->
+                                    <div class="d-flex gap-2">
+                                        <a th:href="@{/crm/contacts/{id}(id=${contact.id})}"
+                                           class="btn btn-outline-primary btn-sm flex-fill">
+                                            <i class="bi bi-eye me-1"></i>View
+                                        </a>
+                                        <a th:href="@{/crm/contacts/{id}/edit(id=${contact.id})}"
+                                           class="btn btn-outline-secondary btn-sm flex-fill"
+                                           sec:authorize="hasAuthority('CRM_UPDATE')">
+                                            <i class="bi bi-pencil me-1"></i>Edit
+                                        </a>
+                                    </div>
+                                </div>
+
+                                <!-- Card Footer with Created Date -->
+                                <div class="card-footer bg-transparent border-0 pt-0">
+                                    <small class="text-muted">
+                                        <i class="bi bi-calendar3 me-1"></i>
+                                        Created <span th:text="${#temporals.format(contact.createdAt, 'dd/MM/yyyy')}">01/01/2024</span>
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics -->
+    <div class="row mt-4" th:if="${!primaryContacts.isEmpty()}">
+        <div class="col">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">Primary Contacts Statistics</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-3">
+                            <div class="h4 mb-0 text-success" th:text="${primaryContacts.size()}">0</div>
+                            <small class="text-muted">Total Primary Contacts</small>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="h4 mb-0 text-primary" th:text="${primaryContacts.?[isCustomerContact()].size()}">0</div>
+                            <small class="text-muted">Customer Contacts</small>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="h4 mb-0 text-warning" th:text="${primaryContacts.?[isSupplierContact()].size()}">0</div>
+                            <small class="text-muted">Supplier Contacts</small>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="h4 mb-0 text-info" th:text="${primaryContacts.?[email != null && email != ''].size()}">0</div>
+                            <small class="text-muted">With Email</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mt-4" th:if="${!primaryContacts.isEmpty()}">
+        <div class="col">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">Quick Actions</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="text-muted mb-3">Contact Management</h6>
+                            <div class="d-grid gap-2">
+                                <a th:href="@{/crm/contacts/new}"
+                                   class="btn btn-outline-success btn-sm" sec:authorize="hasAuthority('CRM_CREATE')">
+                                    <i class="bi bi-person-plus me-2"></i>Add New Primary Contact
+                                </a>
+                                <a th:href="@{/crm/contacts(contactType=COMMERCIAL)}"
+                                   class="btn btn-outline-primary btn-sm">
+                                    <i class="bi bi-filter me-2"></i>Filter All Commercial Contacts
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted mb-3">Communication</h6>
+                            <div class="d-grid gap-2">
+                                <button type="button" class="btn btn-outline-info btn-sm"
+                                        onclick="exportContacts()">
+                                    <i class="bi bi-download me-2"></i>Export Contact List
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm"
+                                        onclick="sendBulkEmail()">
+                                    <i class="bi bi-envelope-at me-2"></i>Send Bulk Email
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Placeholder functions for future implementation
+    function exportContacts() {
+        alert('Export functionality will be implemented in future versions.');
+    }
+
+    function sendBulkEmail() {
+        alert('Bulk email functionality will be implemented in future versions.');
+    }
+</script>
 
 </body>
 </html>

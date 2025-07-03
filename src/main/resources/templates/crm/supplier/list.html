@@ -11,7 +11,6 @@
 <th:block th:replace="fragments/navbar :: navbar(${activeLink})"></th:block>
 
 <div class="container-fluid mt-4">
-    <!-- Header with Statistics -->
     <div class="row mb-4">
         <div class="col">
             <div class="d-flex justify-content-between align-items-center">
@@ -19,8 +18,11 @@
                     <h1 class="h3 mb-0">Suppliers</h1>
                     <p class="text-muted">Manage your supplier relationships</p>
                 </div>
-                <div sec:authorize="hasAuthority('CRM_CREATE')">
-                    <a th:href="@{/crm/suppliers/new}" class="btn btn-success">
+                <div class="btn-group" role="group">
+                    <a th:href="@{/crm/suppliers/stats}" class="btn btn-outline-info">
+                        <i class="bi bi-graph-up me-2"></i>Statistics
+                    </a>
+                    <a th:href="@{/crm/suppliers/new}" class="btn btn-success" sec:authorize="hasAuthority('CRM_CREATE')">
                         <i class="bi bi-plus-circle me-2"></i>New Supplier
                     </a>
                 </div>
@@ -119,7 +121,7 @@
     <!-- Filters -->
     <div class="card mb-4">
         <div class="card-body">
-            <form th:action="@{/crm/suppliers}" method="get" class="row g-3">
+            <form th:action="@{/crm/suppliers}" method="get" class="row g-3" id="filterForm">
                 <div class="col-md-3">
                     <label for="search" class="form-label">Search</label>
                     <input type="text" class="form-control" id="search" name="search"
@@ -147,7 +149,7 @@
                     <button type="submit" class="btn btn-outline-primary me-2">
                         <i class="bi bi-search me-1"></i>Filter
                     </button>
-                    <a th:href="@{/crm/suppliers}" class="btn btn-outline-secondary">
+                    <a th:href="@{/crm/suppliers}" class="btn btn-outline-secondary" id="clearBtn">
                         <i class="bi bi-x-circle me-1"></i>Clear
                     </a>
                 </div>
@@ -359,12 +361,64 @@
         new bootstrap.Modal(document.getElementById('deleteModal')).show();
     }
 
-    // Auto-submit search form with debounce
-    document.getElementById('search').addEventListener('input', function() {
-        clearTimeout(this.searchTimeout);
-        this.searchTimeout = setTimeout(() => {
-            this.form.submit();
-        }, 500);
+    // Improved filter handling
+    document.addEventListener('DOMContentLoaded', function() {
+        const filterForm = document.getElementById('filterForm');
+        const searchInput = document.getElementById('search');
+        const activeSelect = document.getElementById('active');
+        const categorySelect = document.getElementById('category');
+        const clearBtn = document.getElementById('clearBtn');
+
+        // Remove auto-submit on search input to avoid conflicts
+        // Users must click Filter button or press Enter
+
+        // Submit form on Enter key in search field
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                filterForm.submit();
+            }
+        });
+
+        // Submit form when select dropdowns change
+        activeSelect.addEventListener('change', function() {
+            filterForm.submit();
+        });
+
+        categorySelect.addEventListener('change', function() {
+            filterForm.submit();
+        });
+
+        // Clear all filters
+        clearBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+
+            // Clear all form fields
+            searchInput.value = '';
+            activeSelect.value = '';
+            categorySelect.value = '';
+
+            // Submit the cleared form
+            filterForm.submit();
+        });
+
+        // Clean empty parameters before submitting
+        filterForm.addEventListener('submit', function(e) {
+            // Remove empty parameters to avoid sending empty strings
+            const formData = new FormData(filterForm);
+            const params = new URLSearchParams();
+
+            formData.forEach((value, key) => {
+                if (value.trim() !== '') {
+                    params.append(key, value);
+                }
+            });
+
+            // Update the form action with clean parameters
+            const baseUrl = filterForm.action.split('?')[0];
+            window.location.href = baseUrl + (params.toString() ? '?' + params.toString() : '');
+            e.preventDefault();
+        });
     });
 </script>
 

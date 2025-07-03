@@ -235,10 +235,16 @@ public class ContactController {
                     String.format("Contact created successfully: %s (%s: %s)",
                             savedContact.getFullName(), parentType, parentName);
 
+
             redirectAttributes.addFlashAttribute("successMessage", message);
             logger.info("Contact {} successfully: {}", isEdit ? "updated" : "created", savedContact.getFullName());
 
-            return "redirect:/crm/contacts/" + savedContact.getId();
+            // Redirección inteligente: volver a la empresa padre en lugar de detail del contacto
+            if (savedContact.isCustomerContact()) {
+                return "redirect:/crm/customers/" + savedContact.getCustomer().getId();
+            } else {
+                return "redirect:/crm/suppliers/" + savedContact.getSupplier().getId();
+            }
 
         } catch (IllegalArgumentException e) {
             logger.warn("Contact validation error: {}", e.getMessage());

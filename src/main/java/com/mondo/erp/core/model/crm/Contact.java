@@ -26,11 +26,11 @@ public class Contact {
     private String lastName;
 
     @Email(message = "Invalid email format")
-    @Size(max = 100, message = "First name cannot exceed 100 characters")
+    @Size(max = 100, message = "Email cannot exceed 100 characters") // ✅ Corregido el mensaje
     @Column(length = 100)
     private String email;
 
-    @Size(max = 20, message = "Phone cannot exceed 100 characters")
+    @Size(max = 20, message = "Phone cannot exceed 20 characters") // ✅ Corregido el mensaje
     @Column(length = 20)
     private String phone;
 
@@ -39,9 +39,9 @@ public class Contact {
     private String position;
 
     @Enumerated(EnumType.STRING)
-    @Size(max = 100, message = "First name cannot exceed 100 characters")
     @Column(name = "contact_type", nullable = false, length = 20)
     @NotNull(message = "Contact Type is required")
+    // ✅ ELIMINADO @Size ya que no puede aplicarse a enums
     private ContactType contactType;
 
     // Relaciones opcionales y mutuamente exclusivas
@@ -88,7 +88,7 @@ public class Contact {
         this.customer = customer;
     }
 
-    // Constructor para contacto de  Supplier
+    // Constructor para contacto de Supplier
     public Contact(String firstName, String lastName, ContactType contactType, Supplier supplier) {
         this.firstName = firstName;
         this.lastName = lastName;
@@ -105,17 +105,21 @@ public class Contact {
     }
 
     public boolean isSupplierContact() {
-        return  supplier != null;
+        return supplier != null;
     }
 
     // Validación personalizada para asegurar que solo un parent esté asignado
     @PrePersist
     @PreUpdate
-    private void validateExcludeRelation() {
-        if ((customer != null && supplier != null) || (customer == null && supplier == null)){
+    private void validateExclusiveRelation() {
+        if ((customer != null && supplier != null) || (customer == null && supplier == null)) {
             throw new IllegalStateException("Contact must belong exactly to one Customer OR one Supplier");
         }
     }
+
+    // ========================
+    // GETTERS Y SETTERS
+    // ========================
 
     public Long getId() {
         return id;
@@ -189,9 +193,13 @@ public class Contact {
         this.updatedAt = updatedAt;
     }
 
+    public Customer getCustomer() {
+        return customer;
+    }
+
     public void setCustomer(Customer customer) {
         this.customer = customer;
-        if(customer != null) {
+        if (customer != null) {
             this.supplier = null; // Asegura exclusividad
         }
     }
@@ -202,16 +210,14 @@ public class Contact {
 
     public void setSupplier(Supplier supplier) {
         this.supplier = supplier;
-        if(supplier != null) {
+        if (supplier != null) {
             this.customer = null; // Asegura exclusividad
         }
     }
 
-    public Customer getCustomer() {
-        return customer;
-    }
-
-    //--------------------------------------------
+    // ========================
+    // EQUALS, HASHCODE Y TOSTRING
+    // ========================
 
     @Override
     public boolean equals(Object o) {

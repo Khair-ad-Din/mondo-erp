@@ -52,15 +52,22 @@ public class CustomerController {
             Model model,
             @AuthenticationPrincipal UserDetails userDetails) {
 
-        logger.debug("Displaying customer list for user: {}", userDetails.getUsername());
+        logger.debug("Displaying customer list for user: {} with filters - active: {}, search: {}",
+                userDetails.getUsername(), active, search);
 
         User user = getUserFromPrincipal(userDetails);
         Company company = user.getCompany();
 
-        // Obtener clientes con filtros
-        Page<Customer> customers = customerService.findWithFilters(company, active, search, pageable);
+        // Limpiar parámetros vacíos (convertir strings vacíos a null)
+        String cleanSearch = (search != null && search.trim().isEmpty()) ? null : search;
 
-        // Estadisticas para el dashboard
+        // Obtener clientes con filtros
+        Page<Customer> customers = customerService.findWithFilters(company, active, cleanSearch, pageable);
+
+        // Log para debugging
+        logger.debug("Found {} customers with current filters", customers.getTotalElements());
+
+        // Estadísticas para el dashboard
         long totalCustomers = customerService.countByCompany(company);
         long activeCustomers = customerService.countActiveByCompany(company);
 
@@ -70,7 +77,7 @@ public class CustomerController {
         model.addAttribute("activeCustomers", activeCustomers);
         model.addAttribute("inactiveCustomers", totalCustomers - activeCustomers);
         model.addAttribute("currentActive", active);
-        model.addAttribute("currentSearch", search);
+        model.addAttribute("currentSearch", cleanSearch);
         model.addAttribute("activeLink", "crm-customers");
 
         return "crm/customer/list";

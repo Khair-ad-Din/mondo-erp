@@ -40,11 +40,11 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between">
                         <div>
-                            <h6 class="card-title">Total Suppliers</h6>
-                            <h2 class="mb-0" th:text="${totalSuppliers}">0</h2>
+                            <div class="h4 mb-0" th:text="${totalSuppliers}">0</div>
+                            <div>Total Suppliers</div>
                         </div>
                         <div class="align-self-center">
-                            <i class="bi bi-building-fill fa-3x opacity-75"></i>
+                            <i class="bi bi-building display-4"></i>
                         </div>
                     </div>
                 </div>
@@ -56,11 +56,11 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between">
                         <div>
-                            <h6 class="card-title">Active Suppliers</h6>
-                            <h2 class="mb-0" th:text="${activeSuppliers}">0</h2>
+                            <div class="h4 mb-0" th:text="${activeSuppliers}">0</div>
+                            <div>Active Suppliers</div>
                         </div>
                         <div class="align-self-center">
-                            <i class="bi bi-check-circle-fill fa-3x opacity-75"></i>
+                            <i class="bi bi-check-circle display-4"></i>
                         </div>
                     </div>
                 </div>
@@ -68,15 +68,15 @@
         </div>
 
         <div class="col-xl-3 col-md-6 mb-3">
-            <div class="card bg-warning text-dark h-100">
+            <div class="card bg-warning text-white h-100">
                 <div class="card-body">
                     <div class="d-flex justify-content-between">
                         <div>
-                            <h6 class="card-title">Inactive Suppliers</h6>
-                            <h2 class="mb-0" th:text="${inactiveSuppliers}">0</h2>
+                            <div class="h4 mb-0" th:text="${inactiveSuppliers}">0</div>
+                            <div>Inactive Suppliers</div>
                         </div>
                         <div class="align-self-center">
-                            <i class="bi bi-pause-circle-fill fa-3x opacity-75"></i>
+                            <i class="bi bi-pause-circle display-4"></i>
                         </div>
                     </div>
                 </div>
@@ -88,11 +88,11 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between">
                         <div>
-                            <h6 class="card-title">Categories</h6>
-                            <h2 class="mb-0" th:text="${topCategories.size()}">0</h2>
+                            <div class="h4 mb-0" th:text="${categoryStats.size()}">0</div>
+                            <div>Categories</div>
                         </div>
                         <div class="align-self-center">
-                            <i class="bi bi-tags-fill fa-3x opacity-75"></i>
+                            <i class="bi bi-tags display-4"></i>
                         </div>
                     </div>
                 </div>
@@ -100,10 +100,10 @@
         </div>
     </div>
 
-    <!-- Charts and Analysis -->
-    <div class="row">
-        <!-- Category Distribution Chart -->
-        <div class="col-lg-8 mb-4">
+    <!-- Charts Row -->
+    <div class="row mb-4">
+        <!-- Pie Chart -->
+        <div class="col-lg-6 mb-4">
             <div class="card h-100">
                 <div class="card-header">
                     <h5 class="card-title mb-0">
@@ -112,50 +112,60 @@
                 </div>
                 <div class="card-body">
                     <div th:if="${categoryStats.empty}" class="text-center py-5">
-                        <i class="bi bi-pie-chart display-4 text-muted mb-3"></i>
-                        <p class="text-muted">No category data available</p>
-                        <small class="text-muted">Add categories to your suppliers to see distribution</small>
+                        <i class="bi bi-pie-chart display-1 text-muted mb-3"></i>
+                        <h6 class="text-muted">No category data available</h6>
+                        <p class="text-muted">Add suppliers with categories to see the distribution</p>
                     </div>
-
-                    <div th:unless="${categoryStats.empty}">
-                        <canvas id="categoryChart" style="max-height: 400px;"></canvas>
-                    </div>
+                    <canvas th:unless="${categoryStats.empty}" id="categoryChart" width="400" height="200"></canvas>
                 </div>
             </div>
         </div>
 
-        <!-- Top Categories -->
-        <div class="col-lg-4 mb-4">
+        <!-- Bar Chart -->
+        <div class="col-lg-6 mb-4">
             <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-bar-chart me-2"></i>Active vs Inactive
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="statusChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Categories -->
+    <div class="row mb-4" th:if="${!topCategories.empty}">
+        <div class="col">
+            <div class="card">
                 <div class="card-header">
                     <h5 class="card-title mb-0">
                         <i class="bi bi-trophy me-2"></i>Top Categories
                     </h5>
                 </div>
                 <div class="card-body">
-                    <div th:if="${topCategories.empty}" class="text-center py-4">
-                        <i class="bi bi-tags text-muted display-4 mb-3"></i>
-                        <p class="text-muted">No categories found</p>
-                    </div>
-
-                    <div th:unless="${topCategories.empty}">
-                        <div th:each="category, iterStat : ${topCategories}" class="d-flex align-items-center mb-3">
-                            <div class="avatar-sm rounded-circle d-flex align-items-center justify-content-center me-3"
-                                 th:classappend="${iterStat.index == 0} ? 'bg-warning' : (${iterStat.index == 1} ? 'bg-secondary' : 'bg-success')">
-                                <span class="text-white fw-bold" th:text="${iterStat.index + 1}">1</span>
+                    <div class="row" th:each="category, iterStat : ${topCategories}" th:if="${iterStat.index < 5}">
+                        <div class="col mb-3">
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-sm rounded-circle d-flex align-items-center justify-content-center me-3"
+                                     th:classappend="${iterStat.index == 0} ? 'bg-warning' : (${iterStat.index == 1} ? 'bg-secondary' : 'bg-success')">
+                                    <span class="text-white fw-bold" th:text="${iterStat.index + 1}">1</span>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-0" th:text="${category}">Category Name</h6>
+                                    <small class="text-muted">
+                                        <span th:each="stat : ${categoryStats}"
+                                              th:if="${stat[0] == category}"
+                                              th:text="${stat[1]} + ' suppliers'">0 suppliers</span>
+                                    </small>
+                                </div>
+                                <a th:href="@{/crm/suppliers/category/{cat}(cat=${category})}"
+                                   class="btn btn-sm btn-outline-secondary">
+                                    <i class="bi bi-eye"></i>
+                                </a>
                             </div>
-                            <div class="flex-grow-1">
-                                <h6 class="mb-0" th:text="${category}">Category Name</h6>
-                                <small class="text-muted">
-                                    <span th:each="stat : ${categoryStats}"
-                                          th:if="${stat[0] == category}"
-                                          th:text="${stat[1]} + ' suppliers'">0 suppliers</span>
-                                </small>
-                            </div>
-                            <a th:href="@{/crm/suppliers/category/{cat}(cat=${category})}"
-                               class="btn btn-sm btn-outline-secondary">
-                                <i class="bi bi-eye"></i>
-                            </a>
                         </div>
                     </div>
                 </div>
@@ -243,7 +253,7 @@
                         <div class="col-6">
                             <div class="text-center">
                                 <div class="h4 mb-0 text-info"
-                                     th:text="${activeSuppliers > 0 ? #numbers.formatDecimal(activeSuppliers * 1.0 / topCategories.size(), 0, 1) : 0}">0</div>
+                                     th:text="${topCategories.size() > 0 ? #numbers.formatDecimal(activeSuppliers * 1.0 / topCategories.size(), 0, 1) : 0}">0</div>
                                 <small class="text-muted">Avg per Category</small>
                             </div>
                         </div>
@@ -265,6 +275,9 @@
                         <button class="btn btn-outline-info btn-sm" onclick="window.print()">
                             <i class="bi bi-printer me-2"></i>Print Report
                         </button>
+                        <a th:href="@{/crm/suppliers/new}" class="btn btn-outline-primary btn-sm" sec:authorize="hasAuthority('CRM_CREATE')">
+                            <i class="bi bi-plus-circle me-2"></i>Add New Supplier
+                        </a>
                     </div>
                 </div>
             </div>
@@ -272,100 +285,88 @@
     </div>
 </div>
 
-<th:block th:replace="fragments/scripts :: scripts"></th:block>
-
 <!-- Chart.js for visualizations -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
 
-<script th:if="${!categoryStats.empty}">
-    // Chart data from server
-    const chartData = [
-        /*[# th:each="stat : ${categoryStats}"]*/
-        {
-            label: /*[[${stat[0]}]]*/ 'Category',
-            data: /*[[${stat[1]}]]*/ 0
-        },
-        /*[/]*/
-    ];
+<script>
+    // Export function
+    function exportData() {
+        alert('Export functionality will be implemented in future versions.');
+    }
 
-    // Create pie chart
-    const ctx = document.getElementById('categoryChart').getContext('2d');
-    const categoryChart = new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-            labels: chartData.map(item => item.label),
-            datasets: [{
-                data: chartData.map(item => item.data),
-                backgroundColor: [
-                    '#198754', // success
-                    '#0d6efd', // primary
-                    '#fd7e14', // warning
-                    '#6f42c1', // purple
-                    '#dc3545', // danger
-                    '#20c997', // teal
-                    '#ffc107', // yellow
-                    '#6c757d'  // secondary
-                ],
-                borderWidth: 2,
-                borderColor: '#fff'
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: {
-                        padding: 20,
-                        usePointStyle: true
-                    }
+    // Chart.js configurations
+    document.addEventListener('DOMContentLoaded', function() {
+        // Category Pie Chart
+        /*[# th:if="${!categoryStats.empty}"]*/
+        const categoryCtx = document.getElementById('categoryChart')?.getContext('2d');
+        if (categoryCtx) {
+            const categoryData = [
+                /*[# th:each="stat : ${categoryStats}"]*/
+                {
+                    label: '[[${stat[0]}]]',
+                    value: [[${stat[1]}]]
+                }/*[# th:if="${!statStat.last}"]*/,/*[/]*/
+                /*[/]*/
+            ];
+
+            new Chart(categoryCtx, {
+                type: 'pie',
+                data: {
+                    labels: categoryData.map(item => item.label),
+                    datasets: [{
+                        data: categoryData.map(item => item.value),
+                        backgroundColor: [
+                            '#28a745', '#17a2b8', '#ffc107', '#dc3545', '#6f42c1',
+                            '#fd7e14', '#20c997', '#6c757d', '#e83e8c', '#007bff'
+                        ]
+                    }]
                 },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                            const percentage = ((context.parsed * 100) / total).toFixed(1);
-                            return context.label + ': ' + context.parsed + ' (' + percentage + '%)';
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
                         }
                     }
                 }
-            }
+            });
+        }
+        /*[/]*/
+
+        // Status Bar Chart
+        const statusCtx = document.getElementById('statusChart')?.getContext('2d');
+        if (statusCtx) {
+            new Chart(statusCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Active', 'Inactive'],
+                    datasets: [{
+                        label: 'Suppliers',
+                        data: [[[${activeSuppliers}]], [[${inactiveSuppliers}]]],
+                        backgroundColor: ['#28a745', '#ffc107']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
         }
     });
-</script>
-
-<script>
-    function exportData() {
-        // Simple CSV export
-        const csvContent = "data:text/csv;charset=utf-8,"
-            + "Category,Count,Percentage\n"
-            + /*[[${categoryStats}]]*/ [].map(stat =>
-                `${stat[0]},${stat[1]},${(stat[1] * 100.0 / /*[[${totalSuppliers}]]*/ 1).toFixed(1)}%`
-            ).join('\n');
-
-        const encodedUri = encodeURI(csvContent);
-        const link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
-        link.setAttribute("download", "supplier_statistics.csv");
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    }
-
-    // Print styles
-    const printStyles = `
-        @media print {
-            .btn, .navbar { display: none !important; }
-            .card { border: 1px solid #dee2e6 !important; }
-            .container-fluid { margin: 0 !important; padding: 0 !important; }
-        }
-    `;
-
-    const styleSheet = document.createElement("style");
-    styleSheet.type = "text/css";
-    styleSheet.innerText = printStyles;
-    document.head.appendChild(styleSheet);
 </script>
 
 </body>
